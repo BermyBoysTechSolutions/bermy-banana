@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close",
+      "Bash(git add:*)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(git checkout:*)",
+      "Bash(cat:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.cloud.google.com)",
+      "WebFetch(domain:www.speel.co)",
+      "WebFetch(domain:pijushsaha.com)",
+      "WebFetch(domain:www.eesel.ai)",
+      "Bash(npm run db:generate:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(gh auth:*)",
+      "Bash(where gh:*)",
+      "Bash(winget install:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth login --hostname github.com --web --git-protocol https)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create BermyBoysTechSolutions/bermy-banana --private --description \"Bermy Banana - AI-powered UGC video and content generation platform\" --source \"C:\\\\Users\\\\isimm\\\\OneDrive\\\\Documents\\\\Projects\\\\Bermy Banana\" --push)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn",
+    "playwright",
+    "next-devtools"
+  ]
+}
