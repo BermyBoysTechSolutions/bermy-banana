@@ -341,12 +341,19 @@ export default function ModeBPage() {
                     </p>
                   </div>
                 ) : generatedImageUrl ? (
-                  <Image
-                    src={generatedImageUrl}
-                    alt="Generated photo"
-                    fill
-                    className="object-cover"
-                  />
+                  <a href={generatedImageUrl} download={`mode-b-${Date.now()}.png`} className="relative w-full h-full block group">
+                    <Image
+                      src={generatedImageUrl}
+                      alt="Generated photo"
+                      fill
+                      className="object-cover transition-opacity group-hover:opacity-90"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                       <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                          <Download className="h-6 w-6 text-pink-600" />
+                       </div>
+                    </div>
+                  </a>
                 ) : (
                   <div className="text-center p-8">
                     <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

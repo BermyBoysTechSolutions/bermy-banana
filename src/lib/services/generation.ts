@@ -505,35 +505,59 @@ export async function generateUGCVideo(
       }
     }
 
-    // 5. Process each scene
-    const outputs: Array<{ sceneIndex: number; url: string }> = [];
-    let hasError = false;
+        // 5. Process each scene
+        const outputs: Array<{ sceneIndex: number; url: string }> = [];
+        let hasError = false;
 
-    for (const sceneRecord of sceneRecords) {
-      // Update scene to PROCESSING
-      await db
-        .update(scene)
-        .set({ status: "PROCESSING" })
-        .where(eq(scene.id, sceneRecord.id));
+        for (const sceneRecord of sceneRecords) {
+            // Update scene to PROCESSING
+            await db
+                .update(scene)
+                .set({ status: "PROCESSING" })
+                .where(eq(scene.id, sceneRecord.id));
 
-      try {
-        // Build the video prompt with avatar description
-        const videoPrompt = buildUGCVideoPrompt({
-          script: sceneRecord.script,
-          avatarDescription: avatarData.description ?? undefined,
-          action: sceneRecord.action,
-          productDescription,
-          sceneType: sceneRecord.type as "hook" | "demo" | "cta" | "custom",
-          setting: sceneRecord.setting,
-        });
+            try {
+                // Build the video prompt with avatar description
+                const videoPrompt = buildUGCVideoPrompt({
+                    script: sceneRecord.script,
+                    avatarDescription: avatarData.description ?? undefined,
+                    action: sceneRecord.action,
+                    productDescription,
+                    sceneType: sceneRecord.type as "hook" | "demo" | "cta" | "custom",
+                    setting: sceneRecord.setting,
+                });
 
-        // Generate the video
-        const result = await generateVideo({
-          prompt: videoPrompt,
-          aspectRatio: "9:16",
-          duration: sceneRecord.duration as 5 | 6 | 8,
-          audioEnabled: request.audioEnabled ?? true,
-        });
+                // Build reference images array
+                const referenceImages: Array<{ url: string; type: "avatar" | "product" | "reference" }> = [
+                    {
+                        url: avatarData.referenceImageUrl,
+                        type: "avatar" as const,
+                    },
+                ];
+
+                // Add product reference if present
+                if (request.productId) {
+                    const [productData] = await db
+                        .select({ imageUrl: productAsset.imageUrl })
+                        .from(productAsset)
+                        .where(eq(productAsset.id, request.productId))
+                        .limit(1);
+                    if (productData) {
+                        referenceImages.push({
+                            url: productData.imageUrl,
+                            type: "product" as const,
+                        });
+                    }
+                }
+
+                // Generate the video
+                const result = await generateVideo({
+                    prompt: videoPrompt,
+                    referenceImages,
+                    aspectRatio: "9:16",
+                    duration: sceneRecord.duration as 5 | 6 | 8,
+                    audioEnabled: request.audioEnabled ?? true,
+                });
 
         if (result.status !== "COMPLETED" || !result.videoData) {
           // Mark scene as failed

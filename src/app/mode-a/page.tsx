@@ -340,9 +340,9 @@ export default function ModeAPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column - Asset Selection */}
-        <div className="space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           {/* Avatar Selection */}
           <Card>
             <CardHeader>
@@ -484,7 +484,7 @@ export default function ModeAPage() {
         </div>
 
         {/* Middle Column - Scene Builder */}
-        <div className="space-y-4">
+        <div className="lg:col-span-5 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -698,7 +698,7 @@ export default function ModeAPage() {
         </div>
 
         {/* Right Column - Preview/Output */}
-        <div>
+        <div className="lg:col-span-4">
           <Card className="sticky top-6">
             <CardHeader>
               <CardTitle className="text-lg">Output</CardTitle>
@@ -710,7 +710,7 @@ export default function ModeAPage() {
             </CardHeader>
             <CardContent>
               {isGenerating ? (
-                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                <div className="aspect-[9/16] bg-muted rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mx-auto mb-4" />
                     <p className="text-sm text-muted-foreground">
@@ -730,7 +730,7 @@ export default function ModeAPage() {
                         key={output.sceneIndex}
                         className="border border-border rounded-lg overflow-hidden"
                       >
-                        <div className="aspect-video bg-black relative">
+                        <div className="aspect-[9/16] bg-black relative">
                           <video
                             src={output.url}
                             controls
