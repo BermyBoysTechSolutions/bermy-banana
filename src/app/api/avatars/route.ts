@@ -10,8 +10,11 @@ import { upload } from "@/lib/storage";
  * GET /api/avatars - List all avatars for the current user
  */
 export async function GET() {
+  console.log("[AVATAR_GET] Route handler started");
   try {
+    console.log("[AVATAR_GET] Getting session...");
     const session = await auth.api.getSession({ headers: await headers() });
+    console.log("[AVATAR_GET] Session result:", session ? "found" : "null");
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,7 +28,7 @@ export async function GET() {
 
     return NextResponse.json({ avatars });
   } catch (error) {
-    console.error("Error fetching avatars:", error);
+    console.error("[AVATAR_GET] ERROR:", error);
     return NextResponse.json(
       { error: "Failed to fetch avatars" },
       { status: 500 }
@@ -44,8 +47,17 @@ export async function GET() {
  * - metadata: JSON string (optional) - { gender?, ageRange?, ethnicity?, style? }
  */
 export async function POST(request: Request) {
+  console.log("[AVATAR_POST] ========== ROUTE HANDLER STARTED ==========");
+  console.log("[AVATAR_POST] Request URL:", request.url);
+  console.log("[AVATAR_POST] Request method:", request.method);
+  
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    console.log("[AVATAR_POST] Step 1: Getting headers...");
+    const reqHeaders = await headers();
+    console.log("[AVATAR_POST] Step 2: Headers retrieved, calling auth.api.getSession...");
+    
+    const session = await auth.api.getSession({ headers: reqHeaders });
+    console.log("[AVATAR_POST] Step 3: Session result:", session ? `User ID: ${session.user.id}` : "null");
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

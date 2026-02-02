@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { avatar } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { deleteFile } from "@/lib/storage";
+import { isValidUUID } from "@/lib/validation";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -22,6 +23,10 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid avatar ID" }, { status: 400 });
+    }
 
     const [foundAvatar] = await db
       .select()
@@ -58,6 +63,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: "Invalid avatar ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
     // Check if avatar exists and belongs to user
