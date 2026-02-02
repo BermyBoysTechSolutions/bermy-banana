@@ -1,4 +1,22 @@
 import { toNextJsHandler } from "better-auth/next-js"
 import { auth } from "@/lib/auth"
 
-export const { GET, POST } = toNextJsHandler(auth)
+const handler = toNextJsHandler(auth);
+
+export const GET = async (req: Request) => {
+    try {
+        return await handler.GET(req);
+    } catch (e) {
+        console.error("BETTER_AUTH_GET_ERROR:", e);
+        throw e;
+    }
+};
+
+export const POST = async (req: Request) => {
+    try {
+        return await handler.POST(req);
+    } catch (e) {
+        console.error("BETTER_AUTH_POST_ERROR:", e);
+        throw e;
+    }
+};
