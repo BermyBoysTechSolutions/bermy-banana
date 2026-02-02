@@ -114,6 +114,7 @@ export async function POST(request: Request) {
     }
 
     // Create the avatar record
+    console.log("DB_DEBUG: Attempting to insert avatar with userId:", session.user.id);
     const [newAvatar] = await db
       .insert(avatar)
       .values({
@@ -125,11 +126,15 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    console.log("DB_DEBUG: Avatar created successfully:", newAvatar.id);
     return NextResponse.json({ avatar: newAvatar }, { status: 201 });
   } catch (error) {
-    console.error("Error creating avatar:", error);
+    console.error("CRITICAL_ERROR creating avatar:", error);
+    if (error instanceof Error) {
+      console.error("ERROR_STACK:", error.stack);
+    }
     return NextResponse.json(
-      { error: "Failed to create avatar" },
+      { error: "Failed to create avatar", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
