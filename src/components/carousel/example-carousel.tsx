@@ -7,13 +7,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Placeholder content - easy to replace with actual images/GIFs
+// Videos in positions #2 and #5 (indices 1 and 4)
 const SLIDES = [
   { id: 1, label: "Example 1", type: "image" },
-  { id: 2, label: "Example 2", type: "image" },
+  { id: 2, label: "Example 2", type: "video" },
   { id: 3, label: "Example 3", type: "image" },
   { id: 4, label: "Example 4", type: "image" },
   { id: 5, label: "Example 5", type: "video" },
-  { id: 6, label: "Example 6", type: "video" },
+  { id: 6, label: "Example 6", type: "image" },
 ];
 
 export function ExampleCarousel() {
