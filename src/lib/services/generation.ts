@@ -28,7 +28,7 @@ import {
   generateConcatScript,
   type ProductAction,
 } from "@/lib/providers/veo";
-import { checkQuota, decrementQuota } from "./quota";
+import { checkCredits, deductCredits } from "./credits";
 import type { GenerationMode } from "@/lib/providers/types";
 import type {
   GenerationJob,
@@ -107,11 +107,12 @@ export interface GenerationResult {
 }
 
 /**
- * Check if user can generate (approved status and has quota)
+ * Check if user can generate (approved status and has credits)
  */
 export async function canUserGenerate(
   userId: string,
-  mode: GenerationMode
+  mode: GenerationMode,
+  sceneCount: number = 1
 ): Promise<{ allowed: boolean; error?: string | undefined }> {
   // Check user approval status
   const [userData] = await db
@@ -131,10 +132,10 @@ export async function canUserGenerate(
     };
   }
 
-  // Check quota
-  const quotaCheck = await checkQuota(userId, mode);
-  if (!quotaCheck.allowed) {
-    return { allowed: false, error: quotaCheck.error ?? "Quota exceeded" };
+  // Check credits
+  const creditCheck = await checkCredits(userId, mode, sceneCount);
+  if (!creditCheck.allowed) {
+    return { allowed: false, error: creditCheck.error ?? "Insufficient credits" };
   }
 
   return { allowed: true };
@@ -352,8 +353,8 @@ export async function generateInfluencerPhoto(
         .set({ status: "COMPLETED" })
         .where(eq(scene.id, sceneRecord.id));
 
-      // 10. Decrement quota
-      await decrementQuota(userId, "MODE_B");
+      // 10. Deduct credits (1 image = 50 credits)
+      await deductCredits(userId, "MODE_B", 1);
 
       return {
         success: true,
@@ -465,12 +466,6 @@ export async function generateUGCVideo(
   request: ModeAGenerationRequest
 ): Promise<VideoGenerationResult> {
   try {
-    // 1. Check if user can generate
-    const canGenerate = await canUserGenerate(userId, "MODE_A");
-    if (!canGenerate.allowed) {
-      return { success: false, error: canGenerate.error ?? "Cannot generate" };
-    }
-
     // Validate scenes
     if (!request.scenes || request.scenes.length === 0) {
       return { success: false, error: "At least one scene is required" };
@@ -478,6 +473,12 @@ export async function generateUGCVideo(
 
     if (request.scenes.length > 5) {
       return { success: false, error: "Maximum 5 scenes allowed" };
+    }
+
+    // 1. Check if user can generate (with scene count for credit calculation)
+    const canGenerate = await canUserGenerate(userId, "MODE_A", request.scenes.length);
+    if (!canGenerate.allowed) {
+      return { success: false, error: canGenerate.error ?? "Cannot generate" };
     }
 
     // 2. Fetch the avatar
@@ -716,9 +717,9 @@ export async function generateUGCVideo(
       })
       .where(eq(generationJob.id, job.id));
 
-    // 7. Decrement quota (count as 1 video job regardless of scene count)
+    // 7. Deduct credits based on successful scene generations (100 credits per scene)
     if (outputs.length > 0) {
-      await decrementQuota(userId, "MODE_A");
+      await deductCredits(userId, "MODE_A", outputs.length);
     }
 
     // 8. Generate concat script if we have multiple outputs
@@ -761,12 +762,6 @@ export async function generateProductVideo(
   request: ModeCGenerationRequest
 ): Promise<VideoGenerationResult> {
   try {
-    // 1. Check if user can generate
-    const canGenerate = await canUserGenerate(userId, "MODE_C");
-    if (!canGenerate.allowed) {
-      return { success: false, error: canGenerate.error ?? "Cannot generate" };
-    }
-
     // Validate scenes
     if (!request.scenes || request.scenes.length === 0) {
       return { success: false, error: "At least one scene is required" };
@@ -774,6 +769,12 @@ export async function generateProductVideo(
 
     if (request.scenes.length > 5) {
       return { success: false, error: "Maximum 5 scenes allowed" };
+    }
+
+    // 1. Check if user can generate (with scene count for credit calculation)
+    const canGenerate = await canUserGenerate(userId, "MODE_C", request.scenes.length);
+    if (!canGenerate.allowed) {
+      return { success: false, error: canGenerate.error ?? "Cannot generate" };
     }
 
     // 2. Fetch the product
@@ -1003,9 +1004,9 @@ export async function generateProductVideo(
       })
       .where(eq(generationJob.id, job.id));
 
-    // 8. Decrement quota (count as 1 video job regardless of scene count)
+    // 8. Deduct credits based on successful scene generations (100 credits per scene)
     if (outputs.length > 0) {
-      await decrementQuota(userId, "MODE_C");
+      await deductCredits(userId, "MODE_C", outputs.length);
     }
 
     // 9. Generate concat script if we have multiple outputs

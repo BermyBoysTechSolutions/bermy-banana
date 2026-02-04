@@ -38,11 +38,19 @@ export const user = pgTable(
     // Bermy Banana extensions
     status: text("status").default("PENDING").notNull(), // PENDING | APPROVED | DENIED | SUSPENDED
     role: text("role").default("USER").notNull(), // USER | ADMIN
+    // Legacy quota fields (kept for migration, will be deprecated)
     dailyVideoQuota: integer("daily_video_quota").default(50).notNull(),
     dailyImageQuota: integer("daily_image_quota").default(200).notNull(),
     videosGeneratedToday: integer("videos_generated_today").default(0).notNull(),
     imagesGeneratedToday: integer("images_generated_today").default(0).notNull(),
     quotaResetAt: timestamp("quota_reset_at"),
+    // New subscription/credit fields
+    subscriptionTier: text("subscription_tier").default("free").notNull(), // free | starter | pro | agency
+    subscriptionStatus: text("subscription_status").default("inactive").notNull(), // inactive | active | cancelled | past_due
+    creditsRemaining: integer("credits_remaining").default(0).notNull(),
+    creditsTotal: integer("credits_total").default(0).notNull(),
+    polarCustomerId: text("polar_customer_id"),
+    polarSubscriptionId: text("polar_subscription_id"),
   },
   (table) => [index("user_email_idx").on(table.email)]
 );
@@ -451,3 +459,5 @@ export type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 export type GenerationMode = "MODE_A" | "MODE_B" | "MODE_C";
 export type OutputType = "VIDEO" | "IMAGE";
 export type SceneAction = "hold" | "point" | "use" | "unbox" | "demo";
+export type SubscriptionTier = "free" | "starter" | "pro" | "agency";
+export type SubscriptionStatus = "inactive" | "active" | "cancelled" | "past_due";
