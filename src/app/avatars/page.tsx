@@ -376,13 +376,13 @@ export default function AvatarsPage() {
                         setEditingId(av.id);
                         setEditDescription(av.description || "");
                       }}
-                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                      className="p-2 bg-blue-500 text-white rounded-md mr-2"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(av.id)}
-                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                      className="p-2 bg-red-500 text-white rounded-md"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
