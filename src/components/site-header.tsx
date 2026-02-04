@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "./ui/mode-toggle";
+import { Button } from "./ui/button";
+import { useSession } from "@/lib/auth-client";
 
 export function SiteHeader() {
+  const { data: session } = useSession();
+
   return (
     <>
       {/* Skip to main content link for accessibility */}
@@ -43,6 +49,38 @@ export function SiteHeader() {
             >
               Pricing
             </Link>
+            {session ? (
+              <>
+                <Link
+                  href="/mode-a"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Mode A
+                </Link>
+                <Link
+                  href="/mode-b"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Mode B
+                </Link>
+                <Link
+                  href="/mode-c"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Mode C
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </>
+            ) : (
+              <Button asChild variant="default" size="sm">
+                <Link href="/pricing">Get Started</Link>
+              </Button>
+            )}
             <UserProfile />
             <ModeToggle />
           </div>
