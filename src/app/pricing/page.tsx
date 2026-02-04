@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Sparkles, Zap, Building2, Loader2 } from "lucide-react";
+import { Check, Sparkles, Zap, Building2, Briefcase, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,13 +17,14 @@ import {
 interface PricingTier {
   id: string;
   name: string;
-  price: number;
+  price: number | null;
   description: string;
-  credits: number;
-  videosPerMonth: number;
-  imagesPerMonth: number;
+  credits: number | null;
+  videosPerMonth: number | null;
+  imagesPerMonth: number | null;
   features: string[];
   popular?: boolean;
+  contactSales?: boolean;
   productId: string; // Polar product ID placeholder
 }
 
@@ -90,6 +91,25 @@ const pricingTiers: PricingTier[] = [
       "White-label options",
       "Dedicated support",
       "Team collaboration",
+    ],
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    price: null,
+    description: "For large organizations with custom needs",
+    credits: null,
+    videosPerMonth: null,
+    imagesPerMonth: null,
+    contactSales: true,
+    productId: "polar_prod_enterprise", // Placeholder
+    features: [
+      "Custom credit packages",
+      "Dedicated support",
+      "Custom AI avatar training",
+      "API access",
+      "White-label options",
+      "SLA guarantee",
     ],
   },
 ];
@@ -178,7 +198,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {pricingTiers.map((tier) => (
             <Card
               key={tier.id}
@@ -194,6 +214,7 @@ export default function PricingPage() {
                     {tier.id === "starter" && <Zap className="h-5 w-5 text-blue-500" />}
                     {tier.id === "pro" && <Sparkles className="h-5 w-5 text-yellow-500" />}
                     {tier.id === "agency" && <Building2 className="h-5 w-5 text-purple-500" />}
+                    {tier.id === "enterprise" && <Briefcase className="h-5 w-5 text-red-500" />}
                     {tier.name}
                   </CardTitle>
                   {tier.popular && (
@@ -203,25 +224,35 @@ export default function PricingPage() {
                   )}
                 </div>
                 <CardDescription>{tier.description}</CardDescription>
-                <div className="pt-2">
-                  <span className="text-4xl font-bold">${tier.price}</span>
-                  <span className="text-muted-foreground">/month</span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {tier.credits.toLocaleString()} credits
-                </div>
+                {tier.contactSales ? (
+                  <div className="pt-2">
+                    <span className="text-3xl font-bold">Contact Sales</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="pt-2">
+                      <span className="text-4xl font-bold">${tier.price}</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {tier.credits?.toLocaleString()} credits
+                    </div>
+                  </>
+                )}
               </CardHeader>
               <CardContent className="flex-1 space-y-4">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 bg-muted rounded text-center">
-                    <div className="font-semibold">~{tier.videosPerMonth}</div>
-                    <div className="text-muted-foreground">videos</div>
+                {!tier.contactSales && (
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="p-2 bg-muted rounded text-center">
+                      <div className="font-semibold">~{tier.videosPerMonth}</div>
+                      <div className="text-muted-foreground">videos</div>
+                    </div>
+                    <div className="p-2 bg-muted rounded text-center">
+                      <div className="font-semibold">~{tier.imagesPerMonth}</div>
+                      <div className="text-muted-foreground">images</div>
+                    </div>
                   </div>
-                  <div className="p-2 bg-muted rounded text-center">
-                    <div className="font-semibold">~{tier.imagesPerMonth}</div>
-                    <div className="text-muted-foreground">images</div>
-                  </div>
-                </div>
+                )}
                 <ul className="space-y-2">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
@@ -232,25 +263,35 @@ export default function PricingPage() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button
-                  onClick={() => handleSubscribe(tier)}
-                  disabled={loadingTier === tier.id}
-                  className={`w-full ${
-                    tier.popular
-                      ? "bg-yellow-500 hover:bg-yellow-600 text-black"
-                      : ""
-                  }`}
-                  variant={tier.popular ? "default" : "outline"}
-                >
-                  {loadingTier === tier.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    "Get Started"
-                  )}
-                </Button>
+                {tier.contactSales ? (
+                  <Button
+                    asChild
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <a href="mailto:sales@bermybanana.com">Contact Sales</a>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleSubscribe(tier)}
+                    disabled={loadingTier === tier.id}
+                    className={`w-full ${
+                      tier.popular
+                        ? "bg-yellow-500 hover:bg-yellow-600 text-black"
+                        : ""
+                    }`}
+                    variant={tier.popular ? "default" : "outline"}
+                  >
+                    {loadingTier === tier.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      "Get Started"
+                    )}
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           ))}
