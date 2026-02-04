@@ -97,12 +97,12 @@ const pricingTiers: PricingTier[] = [
     price: 179,
     description: "For agencies and high-volume production",
     credits: 6000,
-    videosPerMonth: 60,
+    videosPerMonth: 67,
     imagesPerMonth: 120,
     productId: "polar_prod_agency", // Placeholder
     features: [
       "6,000 credits per month",
-      "~60 videos (100 credits/scene)",
+      "~67 videos (100 credits/scene)",
       "~120 images (50 credits/image)",
       "All 3 generation modes",
       "Multi-scene video workflows",

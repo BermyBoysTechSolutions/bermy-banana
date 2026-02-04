@@ -96,7 +96,7 @@ const bermyTiers = [
     iconColor: "text-purple-500",
     price: 179,
     credits: 6000,
-    videos: 60,
+    videos: 67,
     pricePerVideo: 3.32,
   },
 ];
