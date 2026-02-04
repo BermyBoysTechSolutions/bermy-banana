@@ -39,6 +39,8 @@ interface Avatar {
   createdAt: string;
 }
 
+export const dynamic = "force-dynamic";
+
 export default function AvatarsPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
