@@ -196,8 +196,9 @@ export default function ModeBPage() {
   };
 
   const handleGenerate = async () => {
-    if (!selectedAvatarId || !prompt.trim()) {
-      setError("Please select an avatar and enter a prompt");
+    // Must have either avatar OR reference image, but not both
+    if ((!selectedAvatarId && !selectedReferenceImageId) || !prompt.trim()) {
+      setError("Please select an avatar OR a reference image, and enter a prompt");
       return;
     }
 
@@ -208,19 +209,21 @@ export default function ModeBPage() {
     try {
       const body: Record<string, unknown> = {
         mode: "MODE_B",
-        avatarId: selectedAvatarId,
         prompt: prompt.trim(),
         style,
         title: title.trim() || undefined,
         aspectRatio: "9:16",
       };
 
-      if (selectedProductId) {
-        body.productId = selectedProductId;
-      }
-
+      // Use reference image if selected, otherwise use avatar
       if (selectedReferenceImageId) {
         body.referenceImageId = selectedReferenceImageId;
+      } else if (selectedAvatarId) {
+        body.avatarId = selectedAvatarId;
+      }
+
+      if (selectedProductId) {
+        body.productId = selectedProductId;
       }
 
       const res = await fetch("/api/generate", {
@@ -311,9 +314,9 @@ export default function ModeBPage() {
           {/* Avatar Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">1. Select Avatar</CardTitle>
+              <CardTitle className="text-lg">1. Select Avatar OR Reference</CardTitle>
               <CardDescription>
-                Choose the avatar for your photo
+                Choose either an avatar OR a reference image (not both)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -335,7 +338,10 @@ export default function ModeBPage() {
                   {avatars.map((avatar) => (
                     <button
                       key={avatar.id}
-                      onClick={() => setSelectedAvatarId(avatar.id)}
+                      onClick={() => {
+                        setSelectedAvatarId(avatar.id);
+                        setSelectedReferenceImageId(""); // Deselect reference image
+                      }}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                         selectedAvatarId === avatar.id
                           ? "border-pink-500 ring-2 ring-pink-500/20"
@@ -363,9 +369,9 @@ export default function ModeBPage() {
           {/* Reference Image Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">2. Reference Image (Optional)</CardTitle>
+              <CardTitle className="text-lg">2. Reference Image (Alternative to Avatar)</CardTitle>
               <CardDescription>
-                Use a generated image as starting point for editing
+                Use a generated image as starting point instead of an avatar
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -463,7 +469,10 @@ export default function ModeBPage() {
                   {referenceImages.map((img) => (
                     <div key={img.id} className="relative group">
                       <button
-                        onClick={() => setSelectedReferenceImageId(img.id)}
+                        onClick={() => {
+                        setSelectedReferenceImageId(img.id);
+                        setSelectedAvatarId(""); // Deselect avatar
+                      }}
                         className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all w-full ${
                           selectedReferenceImageId === img.id
                             ? "border-pink-500 ring-2 ring-pink-500/20"
