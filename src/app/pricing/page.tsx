@@ -190,19 +190,6 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Promo Code Banner */}
-        <div className="bg-gradient-to-r from-yellow-500/10 via-yellow-500/5 to-transparent rounded-lg p-6 border border-yellow-500/20">
-          <div className="flex items-center gap-3">
-            <Gift className="h-6 w-6 text-yellow-500" />
-            <div>
-              <h3 className="font-semibold">Have a promo code?</h3>
-              <p className="text-sm text-muted-foreground">
-                Use code <span className="font-mono font-semibold text-yellow-600">BERMY100</span> for 500 free credits (first 100 users only!)
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Credit System Info */}
         <div className="bg-muted/50 rounded-lg p-6 space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">

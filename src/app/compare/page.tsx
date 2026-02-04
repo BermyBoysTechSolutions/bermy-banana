@@ -48,7 +48,7 @@ const competitors: Competitor[] = [
     tiers: [
       { name: "Basic", price: 49, videos: 5, pricePerVideo: 9.80 },
       { name: "Pro", price: 99, videos: 15, pricePerVideo: 6.60 },
-      { name: "Business", price: 199, videos: 35, pricePerVideo: 5.69 },
+      { name: "Business", price: 179, videos: 35, pricePerVideo: 5.69 },
     ],
     features: {
       included: ["AI actors", "Script generation", "Stock footage"],
@@ -94,7 +94,7 @@ const bermyTiers = [
     name: "Agency",
     icon: Building2,
     iconColor: "text-purple-500",
-    price: 199,
+    price: 179,
     credits: 6000,
     videos: 60,
     pricePerVideo: 3.32,
@@ -223,7 +223,7 @@ export default function ComparePage() {
                     </td>
                     <td className="py-4 px-4 text-center">
                       <div className="font-bold">$3.32</div>
-                      <div className="text-xs text-muted-foreground">Agency ($199)</div>
+                      <div className="text-xs text-muted-foreground">Agency ($179)</div>
                     </td>
                   </tr>
                   {competitors.map((competitor) => (
