@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -21,6 +21,9 @@ import {
   PackageOpen,
   Monitor,
   User,
+  Upload,
+  ImagePlus,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +37,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth-client";
 
 interface Product {
@@ -47,6 +51,12 @@ interface Avatar {
   id: string;
   name: string;
   referenceImageUrl: string;
+}
+
+interface ReferenceImage {
+  id: string;
+  name: string;
+  imageUrl: string;
 }
 
 type ProductAction = "hold" | "point" | "use" | "unbox" | "demo";
@@ -123,12 +133,15 @@ export default function ModeCPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [referenceImages, setReferenceImages] = useState<ReferenceImage[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingAvatars, setLoadingAvatars] = useState(true);
+  const [loadingReferenceImages, setLoadingReferenceImages] = useState(true);
 
   // Form state
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [selectedAvatarId, setSelectedAvatarId] = useState<string>("");
+  const [selectedReferenceImageId, setSelectedReferenceImageId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [scenes, setScenes] = useState<ProductSceneConfig[]>([
@@ -137,6 +150,13 @@ export default function ModeCPage() {
     { id: generateId(), action: "demo", script: "", duration: 5, setting: "" },
   ]);
 
+  // Upload dialog state
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploadDescription, setUploadDescription] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<string>("");
@@ -144,15 +164,16 @@ export default function ModeCPage() {
   const [concatScript, setConcatScript] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch products and avatars on mount
+  // Fetch data on mount
   useEffect(() => {
     async function fetchData() {
       if (!session) return;
 
       try {
-        const [productsRes, avatarsRes] = await Promise.all([
+        const [productsRes, avatarsRes, refImagesRes] = await Promise.all([
           fetch("/api/products"),
           fetch("/api/avatars"),
+          fetch("/api/reference-images"),
         ]);
 
         if (productsRes.ok) {
@@ -163,16 +184,67 @@ export default function ModeCPage() {
           const data = await avatarsRes.json();
           setAvatars(data.avatars || []);
         }
+        if (refImagesRes.ok) {
+          const data = await refImagesRes.json();
+          setReferenceImages(data.images || []);
+        }
       } catch (err) {
         console.error("Failed to fetch data:", err);
       } finally {
         setLoadingProducts(false);
         setLoadingAvatars(false);
+        setLoadingReferenceImages(false);
       }
     }
 
     fetchData();
   }, [session]);
+
+  const handleUploadReferenceImage = async () => {
+    if (!uploadFile || !uploadName.trim()) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      formData.append("name", uploadName.trim());
+      if (uploadDescription) {
+        formData.append("description", uploadDescription.trim());
+      }
+
+      const res = await fetch("/api/reference-images", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const data = await res.json();
+      setReferenceImages([data.image, ...referenceImages]);
+      setSelectedReferenceImageId(data.image.id);
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      setUploadName("");
+      setUploadDescription("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      if (!uploadName) {
+        setUploadName(file.name.split(".")[0] || "");
+      }
+    }
+  }, [uploadName]);
 
   const addScene = () => {
     if (scenes.length >= 5) return;
@@ -222,6 +294,7 @@ export default function ModeCPage() {
           mode: "MODE_C",
           productId: selectedProductId,
           avatarId: selectedAvatarId || undefined,
+          referenceImageId: selectedReferenceImageId || undefined,
           title: title.trim() || undefined,
           audioEnabled,
           productScenes: scenes.map((s) => ({
@@ -358,12 +431,133 @@ export default function ModeCPage() {
             </CardContent>
           </Card>
 
+          {/* Reference Image Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">2. Ref Image (Optional)</CardTitle>
+              <CardDescription>Use existing content</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2 mb-3">
+                <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Upload className="h-3 w-3 mr-1" />
+                      Upload
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Upload Reference Image</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div>
+                        <Label htmlFor="ref-file">Image File</Label>
+                        <Input
+                          id="ref-file"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="mt-1"
+                        />
+                        {uploadFile && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Selected: {uploadFile.name}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor="ref-name">Name</Label>
+                        <Input
+                          id="ref-name"
+                          value={uploadName}
+                          onChange={(e) => setUploadName(e.target.value)}
+                          placeholder="My Reference Image"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ref-desc">Description (Optional)</Label>
+                        <Textarea
+                          id="ref-desc"
+                          value={uploadDescription}
+                          onChange={(e) => setUploadDescription(e.target.value)}
+                          placeholder="Description of this reference image..."
+                          rows={3}
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleUploadReferenceImage}
+                        disabled={!uploadFile || !uploadName.trim() || isUploading}
+                        className="w-full"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          "Upload Reference Image"
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                {selectedReferenceImageId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedReferenceImageId("")}
+                    className="h-8 px-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              {loadingReferenceImages ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : referenceImages.length === 0 ? (
+                <div className="text-center py-4 border border-dashed rounded-lg">
+                  <ImagePlus className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">
+                    No reference images
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {referenceImages.map((img) => (
+                    <button
+                      key={img.id}
+                      onClick={() => setSelectedReferenceImageId(img.id)}
+                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedReferenceImageId === img.id
+                          ? "border-green-500 ring-2 ring-green-500/20"
+                          : "border-border hover:border-muted-foreground"
+                      }`}
+                    >
+                      <Image
+                        src={img.imageUrl}
+                        alt={img.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Avatar Selection (Optional) */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-4 w-4" />
-                2. Presenter (Optional)
+                3. Presenter (Optional)
               </CardTitle>
               <CardDescription>Add an avatar to present the product</CardDescription>
             </CardHeader>
@@ -457,7 +651,7 @@ export default function ModeCPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg">3. Build Your Scenes</CardTitle>
+                <CardTitle className="text-lg">4. Build Your Scenes</CardTitle>
                 <CardDescription>
                   Add up to 5 scenes ({scenes.length}/5)
                 </CardDescription>
