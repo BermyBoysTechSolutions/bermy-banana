@@ -366,26 +366,28 @@ export default function AvatarsPage() {
                   fill
                   className="object-cover"
                 />
-                <div className="absolute top-2 right-2 flex gap-1 opacity-100 z-10">
-                  <button
-                    onClick={() => {
-                      setEditingId(av.id);
-                      setEditDescription(av.description || "");
-                    }}
-                    className="p-2 bg-black/50 rounded-full text-white hover:bg-black/70"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(av.id)}
-                    className="p-2 bg-black/50 rounded-full text-white hover:bg-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
               </div>
               <CardHeader className="p-3">
-                <CardTitle className="text-sm">{av.name}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-sm pt-1">{av.name}</CardTitle>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => {
+                        setEditingId(av.id);
+                        setEditDescription(av.description || "");
+                      }}
+                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(av.id)}
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
                 {editingId === av.id ? (
                   <div className="space-y-2 mt-1">
                     <Textarea
