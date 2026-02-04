@@ -94,7 +94,7 @@ const pricingTiers: PricingTier[] = [
   {
     id: "agency",
     name: "Agency",
-    price: 199,
+    price: 179,
     description: "For agencies and high-volume production",
     credits: 6000,
     videosPerMonth: 60,
