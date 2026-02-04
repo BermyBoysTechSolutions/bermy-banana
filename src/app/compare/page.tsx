@@ -9,19 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-interface CompetitorTier {
-  name: string;
-  price: number;
-  videos: number;
-  pricePerVideo: number;
-}
+import { PRICING_TIERS, calculatePricePerVideo } from "@/lib/pricing";
 
 interface Competitor {
   name: string;
   logo?: string;
   description: string;
-  tiers: CompetitorTier[];
+  tiers: {
+    name: string;
+    price: number;
+    videos: number;
+    pricePerVideo: number | null;
+  }[];
   features: {
     included: string[];
     excluded: string[];
@@ -33,9 +32,9 @@ const competitors: Competitor[] = [
     name: "MakeUGC",
     description: "UGC video generation platform",
     tiers: [
-      { name: "Startup", price: 49, videos: 5, pricePerVideo: 9.80 },
-      { name: "Growth", price: 69, videos: 10, pricePerVideo: 6.90 },
-      { name: "Pro", price: 119, videos: 20, pricePerVideo: 5.95 },
+      { name: "Startup", price: 49, videos: 5, pricePerVideo: calculatePricePerVideo(49, 5) },
+      { name: "Growth", price: 69, videos: 10, pricePerVideo: calculatePricePerVideo(69, 10) },
+      { name: "Pro", price: 119, videos: 20, pricePerVideo: calculatePricePerVideo(119, 20) },
     ],
     features: {
       included: ["AI avatars", "Basic templates", "1080p export"],
@@ -46,9 +45,9 @@ const competitors: Competitor[] = [
     name: "Speel",
     description: "AI-powered video ads platform",
     tiers: [
-      { name: "Basic", price: 49, videos: 5, pricePerVideo: 9.80 },
-      { name: "Pro", price: 99, videos: 15, pricePerVideo: 6.60 },
-      { name: "Business", price: 179, videos: 35, pricePerVideo: 5.69 },
+      { name: "Basic", price: 49, videos: 5, pricePerVideo: calculatePricePerVideo(49, 5) },
+      { name: "Pro", price: 99, videos: 15, pricePerVideo: calculatePricePerVideo(99, 15) },
+      { name: "Business", price: 179, videos: 35, pricePerVideo: calculatePricePerVideo(179, 35) },
     ],
     features: {
       included: ["AI actors", "Script generation", "Stock footage"],
@@ -59,9 +58,9 @@ const competitors: Competitor[] = [
     name: "Arcads",
     description: "AI video creation tool",
     tiers: [
-      { name: "Starter", price: 59, videos: 5, pricePerVideo: 11.80 },
-      { name: "Growth", price: 149, videos: 15, pricePerVideo: 9.93 },
-      { name: "Scale", price: 299, videos: 40, pricePerVideo: 7.48 },
+      { name: "Starter", price: 59, videos: 5, pricePerVideo: calculatePricePerVideo(59, 5) },
+      { name: "Growth", price: 149, videos: 15, pricePerVideo: calculatePricePerVideo(149, 15) },
+      { name: "Scale", price: 299, videos: 40, pricePerVideo: calculatePricePerVideo(299, 40) },
     ],
     features: {
       included: ["AI presenters", "Multi-language", "Basic analytics"],
@@ -70,36 +69,30 @@ const competitors: Competitor[] = [
   },
 ];
 
-const bermyTiers = [
-  {
-    name: "Starter",
-    icon: Zap,
-    iconColor: "text-blue-500",
-    price: 39,
-    credits: 800,
-    videos: 8,
-    pricePerVideo: 4.88,
-  },
-  {
-    name: "Pro",
-    icon: Sparkles,
-    iconColor: "text-yellow-500",
-    price: 79,
-    credits: 2400,
-    videos: 24,
-    pricePerVideo: 3.29,
-    popular: true,
-  },
-  {
-    name: "Agency",
-    icon: Building2,
-    iconColor: "text-purple-500",
-    price: 179,
-    credits: 6000,
-    videos: 67,
-    pricePerVideo: 3.32,
-  },
-];
+interface BermyTier {
+  name: string;
+  icon: typeof Zap;
+  iconColor: string;
+  price: number;
+  credits: number;
+  videos: number;
+  pricePerVideo: number | null;
+  popular: boolean;
+}
+
+// Bermy tiers dynamically calculated from shared pricing data
+const bermyTiers: BermyTier[] = PRICING_TIERS
+  .filter(tier => tier.id !== 'trial' && tier.id !== 'enterprise')
+  .map(tier => ({
+    name: tier.name,
+    icon: tier.id === 'starter' ? Zap : tier.id === 'pro' ? Sparkles : Building2,
+    iconColor: tier.id === 'starter' ? "text-blue-500" : tier.id === 'pro' ? "text-yellow-500" : "text-purple-500",
+    price: tier.price!,
+    credits: tier.credits!,
+    videos: tier.videosPerMonth!,
+    pricePerVideo: calculatePricePerVideo(tier.price, tier.videosPerMonth),
+    popular: tier.popular ?? false,
+  }));
 
 const bermyAdvantages = [
   {
@@ -185,7 +178,7 @@ export default function ComparePage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Price/video:</span>
-                    <span className="font-medium text-green-500">${tier.pricePerVideo.toFixed(2)}</span>
+                    <span className="font-medium text-green-500">${tier.pricePerVideo?.toFixed(2) ?? '—'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -213,25 +206,21 @@ export default function ComparePage() {
                     <td className="py-4 px-4 font-semibold text-yellow-500">
                       Bermy Banana
                     </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="font-bold">$4.88</div>
-                      <div className="text-xs text-muted-foreground">Starter ($39)</div>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="font-bold text-green-500">$3.29</div>
-                      <div className="text-xs text-muted-foreground">Pro ($79)</div>
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="font-bold">$3.32</div>
-                      <div className="text-xs text-muted-foreground">Agency ($179)</div>
-                    </td>
+                    {bermyTiers.map((tier) => (
+                      <td key={tier.name} className="py-4 px-4 text-center">
+                        <div className={`font-bold ${tier.popular ? 'text-green-500' : ''}`}>
+                          ${tier.pricePerVideo?.toFixed(2) ?? '—'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{tier.name} (${tier.price})</div>
+                      </td>
+                    ))}
                   </tr>
                   {competitors.map((competitor) => (
                     <tr key={competitor.name} className="hover:bg-muted/30">
                       <td className="py-4 px-4 font-medium">{competitor.name}</td>
                       {competitor.tiers.map((tier) => (
                         <td key={tier.name} className="py-4 px-4 text-center">
-                          <div className="font-medium">${tier.pricePerVideo.toFixed(2)}</div>
+                          <div className="font-medium">${tier.pricePerVideo?.toFixed(2) ?? '—'}</div>
                           <div className="text-xs text-muted-foreground">
                             {tier.name} (${tier.price})
                           </div>

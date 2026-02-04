@@ -14,19 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-interface PricingTier {
-  id: string;
-  name: string;
-  price: number | null;
+import { type PricingTierData } from "@/lib/pricing";
+
+interface PricingTier extends PricingTierData {
   description: string;
-  credits: number | null;
-  videosPerMonth: number | null;
-  imagesPerMonth: number | null;
   features: string[];
-  popular?: boolean;
-  contactSales?: boolean;
-  oneTime?: boolean;
-  productId: string; // Polar product ID placeholder
+  productId: string;
 }
 
 const pricingTiers: PricingTier[] = [
