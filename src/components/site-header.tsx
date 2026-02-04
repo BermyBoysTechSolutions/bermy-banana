@@ -37,6 +37,12 @@ export function SiteHeader() {
             </Link>
           </h1>
           <div className="flex items-center gap-4" role="group" aria-label="User actions">
+            <Link
+              href="/pricing"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </Link>
             <UserProfile />
             <ModeToggle />
           </div>
