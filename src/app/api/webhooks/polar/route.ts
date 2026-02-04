@@ -5,6 +5,7 @@
  * - subscription.created: User subscribes to a plan
  * - subscription.updated: Subscription changes (upgrades, downgrades)
  * - subscription.cancelled: User cancels subscription
+ * - checkout.created: Handle one-time purchases (like trial)
  */
 
 import { createHmac } from "crypto";
@@ -15,6 +16,7 @@ import { user } from "@/lib/schema";
 
 // Credit allocations per tier
 const TIER_CREDITS: Record<string, number> = {
+  trial: 500,
   starter: 800,
   pro: 2400,
   agency: 6000,
@@ -46,7 +48,8 @@ interface PolarWebhookPayload {
     currentPeriodStart?: string;
     currentPeriodEnd?: string;
     cancelAtPeriodEnd?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // For checkout events
+    amount?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: unknown;
   };
@@ -75,23 +78,30 @@ function verifyWebhookSignature(
  */
 function extractTier(
   payload: PolarWebhookPayload
-): { tier: string; credits: number } | null {
+): { tier: string; credits: number; isTrial: boolean } | null {
   // Try metadata first
   const metadataTier = payload.data.metadata?.tier;
   if (metadataTier && TIER_CREDITS[metadataTier] !== undefined) {
-    return { tier: metadataTier, credits: TIER_CREDITS[metadataTier]! };
+    return { 
+      tier: metadataTier, 
+      credits: TIER_CREDITS[metadataTier]!,
+      isTrial: metadataTier === "trial"
+    };
   }
 
   // Try to infer from product name
   const productName = payload.data.product?.name?.toLowerCase() || "";
+  if (productName.includes("trial")) {
+    return { tier: "trial", credits: TIER_CREDITS["trial"]!, isTrial: true };
+  }
   if (productName.includes("starter")) {
-    return { tier: "starter", credits: TIER_CREDITS["starter"]! };
+    return { tier: "starter", credits: TIER_CREDITS["starter"]!, isTrial: false };
   }
   if (productName.includes("pro")) {
-    return { tier: "pro", credits: TIER_CREDITS["pro"]! };
+    return { tier: "pro", credits: TIER_CREDITS["pro"]!, isTrial: false };
   }
   if (productName.includes("agency")) {
-    return { tier: "agency", credits: TIER_CREDITS["agency"]! };
+    return { tier: "agency", credits: TIER_CREDITS["agency"]!, isTrial: false };
   }
 
   return null;
@@ -136,6 +146,58 @@ export async function POST(request: NextRequest) {
       customerId: payload.data.customerId,
     });
 
+    // Handle checkout completed (for one-time purchases like trial)
+    if (eventType === "checkout.completed" || eventType === "order.created") {
+      const tierInfo = extractTier(payload);
+      if (!tierInfo) {
+        console.error("Could not determine tier from payload", payload);
+        return NextResponse.json(
+          { error: "Could not determine tier" },
+          { status: 400 }
+        );
+      }
+
+      const userId = payload.data.metadata?.userId;
+      if (!userId) {
+        console.error("No userId in checkout metadata", payload);
+        return NextResponse.json(
+          { error: "No userId in metadata" },
+          { status: 400 }
+        );
+      }
+
+      // Handle trial purchase differently
+      if (tierInfo.isTrial) {
+        await db
+          .update(user)
+          .set({
+            subscriptionTier: "trial",
+            subscriptionStatus: "trial", // Trial is not "active" subscription
+            creditsRemaining: tierInfo.credits,
+            creditsTotal: tierInfo.credits,
+            polarCustomerId: payload.data.customerId,
+            // Don't set polarSubscriptionId for trial (it's not a subscription)
+          })
+          .where(eq(user.id, userId));
+
+        console.log(`Activated trial for user ${userId} with ${tierInfo.credits} credits`);
+      } else {
+        // Regular subscription
+        await db
+          .update(user)
+          .set({
+            subscriptionTier: tierInfo.tier,
+            subscriptionStatus: "active",
+            creditsRemaining: tierInfo.credits,
+            creditsTotal: tierInfo.credits,
+            polarCustomerId: payload.data.customerId,
+          })
+          .where(eq(user.id, userId));
+
+        console.log(`Activated ${tierInfo.tier} subscription for user ${userId}`);
+      }
+    }
+
     // Handle subscription created
     if (eventType === "subscription.created") {
       const tierInfo = extractTier(payload);
@@ -154,6 +216,12 @@ export async function POST(request: NextRequest) {
           { error: "No userId in metadata" },
           { status: 400 }
         );
+      }
+
+      // Skip trial subscriptions (handled by checkout.completed)
+      if (tierInfo.isTrial) {
+        console.log(`Skipping subscription.created for trial user ${userId}`);
+        return NextResponse.json({ success: true });
       }
 
       // Update user subscription
@@ -177,7 +245,7 @@ export async function POST(request: NextRequest) {
       const tierInfo = extractTier(payload);
       const userId = payload.data.metadata?.userId;
 
-      if (tierInfo && userId) {
+      if (tierInfo && userId && !tierInfo.isTrial) {
         await db
           .update(user)
           .set({
@@ -229,7 +297,7 @@ export async function POST(request: NextRequest) {
       const tierInfo = extractTier(payload);
       const userId = payload.data.metadata?.userId;
 
-      if (tierInfo && userId) {
+      if (tierInfo && userId && !tierInfo.isTrial) {
         // Reset credits on renewal
         await db
           .update(user)

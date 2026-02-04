@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Lock, Video, ImageIcon, Package, Clock, ImagePlus, Upload, X, Loader2 } from "lucide-react";
+import { Lock, Video, ImageIcon, Package, Clock, ImagePlus, Upload, X, Loader2, Gift, Coins, AlertCircle } from "lucide-react";
 import { UserProfile } from "@/components/auth/user-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -18,12 +19,20 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface ReferenceImage {
   id: string;
   name: string;
   imageUrl: string;
   description?: string;
+}
+
+interface UserCreditInfo {
+  subscriptionTier: string;
+  subscriptionStatus: string;
+  creditsRemaining: number;
+  creditsTotal: number;
 }
 
 export default function DashboardPage() {
@@ -37,6 +46,33 @@ export default function DashboardPage() {
   const [uploadName, setUploadName] = useState("");
   const [uploadDescription, setUploadDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+
+  // Credit and promo code state
+  const [creditInfo, setCreditInfo] = useState<UserCreditInfo | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState(true);
+  const [promoCode, setPromoCode] = useState("");
+  const [isRedeeming, setIsRedeeming] = useState(false);
+
+  // Fetch user credit info
+  useEffect(() => {
+    async function fetchCreditInfo() {
+      if (!session) return;
+      
+      try {
+        const res = await fetch("/api/user/credits");
+        if (res.ok) {
+          const data = await res.json();
+          setCreditInfo(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch credit info:", err);
+      } finally {
+        setLoadingCredits(false);
+      }
+    }
+
+    fetchCreditInfo();
+  }, [session]);
 
   // Fetch reference images
   useEffect(() => {
@@ -58,6 +94,39 @@ export default function DashboardPage() {
 
     fetchReferenceImages();
   }, [session]);
+
+  const handleRedeemPromoCode = async () => {
+    if (!promoCode.trim()) return;
+
+    setIsRedeeming(true);
+    try {
+      const res = await fetch("/api/promo/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to redeem promo code");
+      }
+
+      toast.success(data.message);
+      setPromoCode("");
+      
+      // Refresh credit info
+      const creditRes = await fetch("/api/user/credits");
+      if (creditRes.ok) {
+        const creditData = await creditRes.json();
+        setCreditInfo(creditData);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to redeem promo code");
+    } finally {
+      setIsRedeeming(false);
+    }
+  };
 
   const handleUploadReferenceImage = async () => {
     if (!uploadFile || !uploadName.trim()) return;
@@ -120,6 +189,11 @@ export default function DashboardPage() {
     }
   }, [uploadName]);
 
+  // Check if user is on trial and has low credits
+  const isTrial = creditInfo?.subscriptionTier === "trial";
+  const isTrialExhausted = isTrial && (creditInfo?.creditsRemaining ?? 0) <= 0;
+  const isLowCredits = (creditInfo?.creditsRemaining ?? 0) < 100 && (creditInfo?.creditsRemaining ?? 0) > 0;
+
   if (isPending) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -156,6 +230,121 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Credit Status Card */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Coins className="h-5 w-5 text-yellow-500" />
+            Your Credits
+          </CardTitle>
+          <CardDescription>
+            Manage your credits and subscription
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingCredits ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading credits...
+            </div>
+          ) : creditInfo ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="text-3xl font-bold">
+                  {creditInfo.creditsRemaining.toLocaleString()}
+                </div>
+                <div className="text-muted-foreground">
+                  / {creditInfo.creditsTotal.toLocaleString()} credits remaining
+                </div>
+                <Badge 
+                  variant={creditInfo.subscriptionTier === "trial" ? "secondary" : "default"}
+                  className={creditInfo.subscriptionTier === "trial" ? "bg-green-100 text-green-700" : ""}
+                >
+                  {creditInfo.subscriptionTier.charAt(0).toUpperCase() + creditInfo.subscriptionTier.slice(1)}
+                </Badge>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-muted rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all ${
+                    isTrialExhausted ? "bg-red-500" : isLowCredits ? "bg-yellow-500" : "bg-green-500"
+                  }`}
+                  style={{ 
+                    width: `${Math.max(0, Math.min(100, (creditInfo.creditsRemaining / Math.max(1, creditInfo.creditsTotal)) * 100))}%` 
+                  }}
+                />
+              </div>
+
+              {/* Trial exhausted warning */}
+              {isTrialExhausted && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-900">Trial Credits Exhausted</p>
+                    <p className="text-sm text-red-700 mt-1">
+                      Your trial credits have been used up. Upgrade to a monthly plan to continue generating content.
+                    </p>
+                    <Button asChild className="mt-3" size="sm">
+                      <Link href="/pricing">Upgrade to Monthly Plan</Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Low credits warning */}
+              {!isTrialExhausted && isLowCredits && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-yellow-900">Low Credits</p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      You are running low on credits. Consider upgrading your plan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Promo Code Input */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <Gift className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Have a promo code?</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter promo code (e.g., BERM100)"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRedeemPromoCode()}
+                    className="max-w-xs"
+                  />
+                  <Button 
+                    onClick={handleRedeemPromoCode}
+                    disabled={!promoCode.trim() || isRedeeming}
+                    variant="outline"
+                  >
+                    {isRedeeming ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Redeeming...
+                      </>
+                    ) : (
+                      "Redeem"
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Try <span className="font-mono font-medium">BERMY100</span> for 500 free credits (first 100 users)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Failed to load credit information</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Generation Mode Cards */}
       <h2 className="text-xl font-semibold mb-4">Create Content</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -169,8 +358,10 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mb-4 text-sm">
             Create talking head videos with your avatar, optional product, and multi-scene scripts.
           </p>
-          <Button asChild className="w-full">
-            <Link href="/mode-a">Create Video</Link>
+          <Button asChild className="w-full" disabled={isTrialExhausted}>
+            <Link href={isTrialExhausted ? "/pricing" : "/mode-a"}>
+              {isTrialExhausted ? "Upgrade to Continue" : "Create Video"}
+            </Link>
           </Button>
         </div>
 
@@ -184,8 +375,10 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mb-4 text-sm">
             Generate realistic phone-captured style photos of your AI avatar for social media.
           </p>
-          <Button asChild className="w-full">
-            <Link href="/mode-b">Create Photo</Link>
+          <Button asChild className="w-full" disabled={isTrialExhausted}>
+            <Link href={isTrialExhausted ? "/pricing" : "/mode-b"}>
+              {isTrialExhausted ? "Upgrade to Continue" : "Create Photo"}
+            </Link>
           </Button>
         </div>
 
@@ -199,8 +392,10 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mb-4 text-sm">
             Create product demos with avatars holding, pointing, unboxing, or using your products.
           </p>
-          <Button asChild className="w-full">
-            <Link href="/mode-c">Create Product Video</Link>
+          <Button asChild className="w-full" disabled={isTrialExhausted}>
+            <Link href={isTrialExhausted ? "/pricing" : "/mode-c"}>
+              {isTrialExhausted ? "Upgrade to Continue" : "Create Product Video"}
+            </Link>
           </Button>
         </div>
       </div>
@@ -218,7 +413,7 @@ export default function DashboardPage() {
             </div>
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button disabled={isTrialExhausted}>
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Image
                 </Button>

@@ -18,6 +18,7 @@ export const CREDIT_COSTS = {
 
 // Default credits per subscription tier
 export const TIER_CREDITS = {
+  TRIAL: 500,
   STARTER: 800,
   PRO: 2400,
   AGENCY: 6000,
@@ -28,6 +29,7 @@ export interface CreditCheckResult {
   remaining: number;
   required: number;
   error?: string | undefined;
+  isTrialExhausted?: boolean;
 }
 
 export interface UserCreditInfo {
@@ -83,10 +85,32 @@ export async function checkCredits(
     };
   }
 
-  // Check if subscription is active (or user is on free tier with legacy quota)
+  // Calculate required credits
+  const requiredCredits = calculateRequiredCredits(mode, sceneCount);
+
+  // For free tier, fall back to legacy quota system
+  if (userData.subscriptionTier === "free") {
+    return checkLegacyQuota(userId, mode);
+  }
+
+  // Check if user is on trial and has exhausted credits
+  const isTrial = userData.subscriptionTier === "trial";
+  const isTrialExhausted = isTrial && userData.creditsRemaining <= 0;
+
+  if (isTrialExhausted) {
+    return {
+      allowed: false,
+      remaining: 0,
+      required: requiredCredits,
+      error: "Trial credits exhausted. Please upgrade to a monthly plan to continue.",
+      isTrialExhausted: true,
+    };
+  }
+
+  // Check if subscription is active (or user is on trial with credits remaining)
   const isActive =
     userData.subscriptionStatus === "active" ||
-    userData.subscriptionTier === "free";
+    (isTrial && userData.creditsRemaining > 0);
 
   if (!isActive && userData.creditsRemaining <= 0) {
     return {
@@ -95,14 +119,6 @@ export async function checkCredits(
       required: 0,
       error: "No active subscription. Please subscribe to continue.",
     };
-  }
-
-  // Calculate required credits
-  const requiredCredits = calculateRequiredCredits(mode, sceneCount);
-
-  // For free tier, fall back to legacy quota system
-  if (userData.subscriptionTier === "free") {
-    return checkLegacyQuota(userId, mode);
   }
 
   // Check if user has enough credits
@@ -115,6 +131,7 @@ export async function checkCredits(
     error: hasEnoughCredits
       ? undefined
       : `Insufficient credits. Required: ${requiredCredits}, Available: ${userData.creditsRemaining}`,
+    isTrialExhausted: false,
   };
 }
 
@@ -223,6 +240,27 @@ export async function getUserCreditInfo(
     .limit(1);
 
   return userData || null;
+}
+
+/**
+ * Check if user can purchase trial (trial is one-time only)
+ */
+export async function canPurchaseTrial(userId: string): Promise<boolean> {
+  const [userData] = await db
+    .select({
+      subscriptionTier: user.subscriptionTier,
+    })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!userData) {
+    return false;
+  }
+
+  // User can only purchase trial if they're on free tier
+  // (not if they've already been on trial or have an active subscription)
+  return userData.subscriptionTier === "free";
 }
 
 // ============================================================================

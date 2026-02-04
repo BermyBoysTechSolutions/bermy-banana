@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { Polar } from "@polar-sh/sdk";
 import { auth } from "@/lib/auth";
+import { canPurchaseTrial } from "@/lib/services/credits";
 
 // Initialize Polar client
 const polar = new Polar({
@@ -17,6 +18,7 @@ const polar = new Polar({
 
 // Product ID mapping (placeholders - replace with actual Polar product IDs)
 const PRODUCT_IDS: Record<string, string> = {
+  trial: process.env.POLAR_TRIAL_PRODUCT_ID || "polar_prod_trial",
   starter: process.env.POLAR_STARTER_PRODUCT_ID || "polar_prod_starter",
   pro: process.env.POLAR_PRO_PRODUCT_ID || "polar_prod_pro",
   agency: process.env.POLAR_AGENCY_PRODUCT_ID || "polar_prod_agency",
@@ -44,6 +46,17 @@ export async function POST(request: NextRequest) {
         { error: "Invalid subscription tier" },
         { status: 400 }
       );
+    }
+
+    // Check if user is trying to purchase trial
+    if (tier === "trial") {
+      const canTrial = await canPurchaseTrial(session.user.id);
+      if (!canTrial) {
+        return NextResponse.json(
+          { error: "Trial can only be purchased once. Please upgrade to a monthly plan." },
+          { status: 403 }
+        );
+      }
     }
 
     const polarProductId = productId || PRODUCT_IDS[tier];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Sparkles, Zap, Building2, Briefcase, Loader2 } from "lucide-react";
+import { Check, Sparkles, Zap, Building2, Briefcase, Loader2, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,10 +25,31 @@ interface PricingTier {
   features: string[];
   popular?: boolean;
   contactSales?: boolean;
+  oneTime?: boolean;
   productId: string; // Polar product ID placeholder
 }
 
 const pricingTiers: PricingTier[] = [
+  {
+    id: "trial",
+    name: "Trial",
+    price: 9,
+    description: "Try before you commit - perfect for testing",
+    credits: 500,
+    videosPerMonth: 5,
+    imagesPerMonth: 10,
+    productId: "polar_prod_trial", // Placeholder
+    oneTime: true,
+    features: [
+      "500 credits (one-time)",
+      "~5 videos (100 credits/scene)",
+      "~10 images (50 credits/image)",
+      "All 3 generation modes",
+      "Full feature access",
+      "No monthly commitment",
+      "Credits never expire",
+    ],
+  },
   {
     id: "starter",
     name: "Starter",
@@ -169,6 +190,19 @@ export default function PricingPage() {
           </p>
         </div>
 
+        {/* Promo Code Banner */}
+        <div className="bg-gradient-to-r from-yellow-500/10 via-yellow-500/5 to-transparent rounded-lg p-6 border border-yellow-500/20">
+          <div className="flex items-center gap-3">
+            <Gift className="h-6 w-6 text-yellow-500" />
+            <div>
+              <h3 className="font-semibold">Have a promo code?</h3>
+              <p className="text-sm text-muted-foreground">
+                Use code <span className="font-mono font-semibold text-yellow-600">BERMY100</span> for 500 free credits (first 100 users only!)
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Credit System Info */}
         <div className="bg-muted/50 rounded-lg p-6 space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -198,7 +232,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {pricingTiers.map((tier) => (
             <Card
               key={tier.id}
@@ -211,6 +245,7 @@ export default function PricingPage() {
               <CardHeader className="space-y-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl flex items-center gap-2">
+                    {tier.id === "trial" && <Gift className="h-5 w-5 text-green-500" />}
                     {tier.id === "starter" && <Zap className="h-5 w-5 text-blue-500" />}
                     {tier.id === "pro" && <Sparkles className="h-5 w-5 text-yellow-500" />}
                     {tier.id === "agency" && <Building2 className="h-5 w-5 text-purple-500" />}
@@ -220,6 +255,11 @@ export default function PricingPage() {
                   {tier.popular && (
                     <Badge className="bg-yellow-500 text-black hover:bg-yellow-600">
                       Popular
+                    </Badge>
+                  )}
+                  {tier.oneTime && (
+                    <Badge variant="outline" className="border-green-500 text-green-600">
+                      One-time
                     </Badge>
                   )}
                 </div>
@@ -232,10 +272,15 @@ export default function PricingPage() {
                   <>
                     <div className="pt-2">
                       <span className="text-4xl font-bold">${tier.price}</span>
-                      <span className="text-muted-foreground">/month</span>
+                      {tier.oneTime ? (
+                        <span className="text-muted-foreground"> one-time</span>
+                      ) : (
+                        <span className="text-muted-foreground">/month</span>
+                      )}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {tier.credits?.toLocaleString()} credits
+                      {tier.oneTime && <span className="text-green-600 font-medium"> (never expires)</span>}
                     </div>
                   </>
                 )}
@@ -278,15 +323,19 @@ export default function PricingPage() {
                     className={`w-full ${
                       tier.popular
                         ? "bg-yellow-500 hover:bg-yellow-600 text-black"
+                        : tier.oneTime
+                        ? "bg-green-600 hover:bg-green-700 text-white"
                         : ""
                     }`}
-                    variant={tier.popular ? "default" : "outline"}
+                    variant={tier.popular || tier.oneTime ? "default" : "outline"}
                   >
                     {loadingTier === tier.id ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Loading...
                       </>
+                    ) : tier.oneTime ? (
+                      "Get Trial Access"
                     ) : (
                       "Get Started"
                     )}
@@ -319,8 +368,8 @@ export default function PricingPage() {
             </a>
           </p>
           <p className="mt-2">
-            All subscriptions can be cancelled at any time. Credits expire after
-            30 days of inactivity.
+            All subscriptions can be cancelled at any time. Trial credits never expire.
+            Monthly credits expire after 30 days of inactivity.
           </p>
         </div>
       </div>

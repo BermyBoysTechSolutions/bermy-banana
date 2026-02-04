@@ -341,6 +341,43 @@ export const referenceImage = pgTable(
   (table) => [index("reference_image_user_id_idx").on(table.userId)]
 );
 
+// Promo Code - For promotional credits
+export const promoCode = pgTable(
+  "promo_code",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().unique(),
+    credits: integer("credits").notNull(),
+    maxUses: integer("max_uses").notNull(),
+    usedCount: integer("used_count").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    expiresAt: timestamp("expires_at"),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("promo_code_code_idx").on(table.code)]
+);
+
+// Redeemed Promo Code - Track which users have redeemed which codes
+export const redeemedPromoCode = pgTable(
+  "redeemed_promo_code",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    promoCodeId: uuid("promo_code_id")
+      .notNull()
+      .references(() => promoCode.id, { onDelete: "cascade" }),
+    redeemedAt: timestamp("redeemed_at").defaultNow().notNull(),
+    creditsAwarded: integer("credits_awarded").notNull(),
+  },
+  (table) => [
+    index("redeemed_promo_user_idx").on(table.userId),
+    index("redeemed_promo_code_idx").on(table.promoCodeId),
+  ]
+);
+
 // ============================================================================
 // Relations
 // ============================================================================
@@ -421,6 +458,21 @@ export const referenceImageRelations = relations(referenceImage, ({ one }) => ({
   }),
 }));
 
+export const promoCodeRelations = relations(promoCode, ({ many }) => ({
+  redemptions: many(redeemedPromoCode),
+}));
+
+export const redeemedPromoCodeRelations = relations(redeemedPromoCode, ({ one }) => ({
+  user: one(user, {
+    fields: [redeemedPromoCode.userId],
+    references: [user.id],
+  }),
+  promoCode: one(promoCode, {
+    fields: [redeemedPromoCode.promoCodeId],
+    references: [promoCode.id],
+  }),
+}));
+
 // ============================================================================
 // Type Exports
 // ============================================================================
@@ -452,6 +504,12 @@ export type NewAuditLog = typeof auditLog.$inferInsert;
 export type ReferenceImage = typeof referenceImage.$inferSelect;
 export type NewReferenceImage = typeof referenceImage.$inferInsert;
 
+export type PromoCode = typeof promoCode.$inferSelect;
+export type NewPromoCode = typeof promoCode.$inferInsert;
+
+export type RedeemedPromoCode = typeof redeemedPromoCode.$inferSelect;
+export type NewRedeemedPromoCode = typeof redeemedPromoCode.$inferInsert;
+
 // Status and Role types
 export type UserStatus = "PENDING" | "APPROVED" | "DENIED" | "SUSPENDED";
 export type UserRole = "USER" | "ADMIN";
@@ -459,5 +517,5 @@ export type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 export type GenerationMode = "MODE_A" | "MODE_B" | "MODE_C";
 export type OutputType = "VIDEO" | "IMAGE";
 export type SceneAction = "hold" | "point" | "use" | "unbox" | "demo";
-export type SubscriptionTier = "free" | "starter" | "pro" | "agency";
-export type SubscriptionStatus = "inactive" | "active" | "cancelled" | "past_due";
+export type SubscriptionTier = "free" | "trial" | "starter" | "pro" | "agency";
+export type SubscriptionStatus = "inactive" | "trial" | "active" | "cancelled" | "past_due";
