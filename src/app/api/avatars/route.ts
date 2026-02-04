@@ -138,6 +138,12 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    if (!newAvatar) {
+      return NextResponse.json(
+        { error: "Failed to create avatar" },
+        { status: 500 }
+      );
+    }
     console.log("DB_DEBUG: Avatar created successfully:", newAvatar.id);
     return NextResponse.json({ avatar: newAvatar }, { status: 201 });
   } catch (error) {
