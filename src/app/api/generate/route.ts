@@ -164,10 +164,10 @@ export async function POST(request: Request) {
       }
 
       case "MODE_B": {
-        // Influencer Photo - requires avatar and prompt
-        if (!avatarId) {
+        // Influencer Photo - requires avatar OR reference image, plus prompt
+        if (!avatarId && !referenceImageId) {
           return NextResponse.json(
-            { error: "Avatar ID is required for Mode B" },
+            { error: "Either Avatar ID or Reference Image ID is required for Mode B" },
             { status: 400 }
           );
         }

@@ -314,9 +314,9 @@ export default function ModeBPage() {
           {/* Avatar Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">1. Select Avatar OR Reference</CardTitle>
+              <CardTitle className="text-lg">1. Generate From Avatar</CardTitle>
               <CardDescription>
-                Choose either an avatar OR a reference image (not both)
+                Choose an avatar to generate from (or use reference image below)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -369,9 +369,9 @@ export default function ModeBPage() {
           {/* Reference Image Selection */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">2. Reference Image (Alternative to Avatar)</CardTitle>
+              <CardTitle className="text-lg">2. Generate From Reference Image</CardTitle>
               <CardDescription>
-                Use a generated image as starting point instead of an avatar
+                Use a reference image as starting point instead of an avatar
               </CardDescription>
             </CardHeader>
             <CardContent>
