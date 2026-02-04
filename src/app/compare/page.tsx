@@ -195,7 +195,7 @@ export default function ComparePage() {
                     </td>
                     {bermyTiers.map((tier) => (
                       <td key={tier.name} className="py-4 px-4 text-center">
-                        <div className={`font-bold ${tier.popular ? 'text-green-500' : ''}`}>
+                        <div className="font-bold text-green-500">
                           ${tier.pricePerVideo?.toFixed(2) ?? '—'}
                         </div>
                         <div className="text-xs text-muted-foreground">{tier.name} (${tier.price})</div>
