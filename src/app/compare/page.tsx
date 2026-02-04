@@ -42,29 +42,16 @@ const competitors: Competitor[] = [
     },
   },
   {
-    name: "Speel",
-    description: "AI-powered video ads platform",
-    tiers: [
-      { name: "Starter", price: 69, videos: 27, pricePerVideo: calculatePricePerVideo(69, 27) },
-      { name: "Growth", price: 99, videos: 60, pricePerVideo: calculatePricePerVideo(99, 60) },
-      { name: "Pro", price: 139, videos: 125, pricePerVideo: calculatePricePerVideo(139, 125) },
-    ],
-    features: {
-      included: ["AI actors", "Script generation", "35 languages", "Product holding", "Outfit swapping"],
-      excluded: ["All 3 generation modes", "API access (lower tiers)", "Unlimited scenes per video"],
-    },
-  },
-  {
     name: "Arcads",
     description: "AI video creation tool",
     tiers: [
-      { name: "Starter", price: 59, videos: 5, pricePerVideo: calculatePricePerVideo(59, 5) },
-      { name: "Growth", price: 149, videos: 15, pricePerVideo: calculatePricePerVideo(149, 15) },
-      { name: "Scale", price: 299, videos: 40, pricePerVideo: calculatePricePerVideo(299, 40) },
+      { name: "Basic", price: 110, videos: 10, pricePerVideo: calculatePricePerVideo(110, 10) },
+      { name: "Growth", price: 199, videos: 20, pricePerVideo: calculatePricePerVideo(199, 20) },
+      { name: "Scale", price: 399, videos: 50, pricePerVideo: calculatePricePerVideo(399, 50) },
     ],
     features: {
       included: ["AI presenters", "Multi-language", "Basic analytics"],
-      excluded: ["Custom branding", "API access", "Team collaboration"],
+      excluded: ["No free trial", "Custom branding", "API access"],
     },
   },
 ];
