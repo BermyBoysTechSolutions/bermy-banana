@@ -45,13 +45,13 @@ const competitors: Competitor[] = [
     name: "Speel",
     description: "AI-powered video ads platform",
     tiers: [
-      { name: "Basic", price: 49, videos: 5, pricePerVideo: calculatePricePerVideo(49, 5) },
-      { name: "Pro", price: 99, videos: 15, pricePerVideo: calculatePricePerVideo(99, 15) },
-      { name: "Business", price: 179, videos: 35, pricePerVideo: calculatePricePerVideo(179, 35) },
+      { name: "Starter", price: 69, videos: 27, pricePerVideo: calculatePricePerVideo(69, 27) },
+      { name: "Growth", price: 99, videos: 60, pricePerVideo: calculatePricePerVideo(99, 60) },
+      { name: "Pro", price: 139, videos: 125, pricePerVideo: calculatePricePerVideo(139, 125) },
     ],
     features: {
-      included: ["AI actors", "Script generation", "Stock footage"],
-      excluded: ["Unlimited scenes per video", "Custom avatars", "Priority processing"],
+      included: ["AI actors", "Script generation", "35 languages", "Product holding", "Outfit swapping"],
+      excluded: ["All 3 generation modes", "API access (lower tiers)", "Unlimited scenes per video"],
     },
   },
   {
