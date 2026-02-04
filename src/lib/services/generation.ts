@@ -12,6 +12,7 @@ import {
   outputAsset,
   avatar,
   productAsset,
+  referenceImage,
   user,
 } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
@@ -68,6 +69,8 @@ export interface ModeBGenerationRequest {
   style?: "casual" | "professional" | "lifestyle" | "selfie" | undefined;
   aspectRatio?: "9:16" | "16:9" | "1:1" | undefined;
   title?: string | undefined;
+  productId?: string | undefined;
+  referenceImageId?: string | undefined;
 }
 
 /**
@@ -188,6 +191,32 @@ export async function generateInfluencerPhoto(
       return { success: false, error: "Failed to create job" };
     }
 
+    // Fetch optional product data
+    let productData: { name: string; description: string | null; imageUrl: string } | null = null;
+    if (request.productId) {
+      const [fetchedProduct] = await db
+        .select()
+        .from(productAsset)
+        .where(and(eq(productAsset.id, request.productId), eq(productAsset.userId, userId)))
+        .limit(1);
+      if (fetchedProduct) {
+        productData = fetchedProduct;
+      }
+    }
+
+    // Fetch optional reference image data
+    let referenceImageData: { imageUrl: string; name: string } | null = null;
+    if (request.referenceImageId) {
+      const [fetchedRef] = await db
+        .select()
+        .from(referenceImage)
+        .where(and(eq(referenceImage.id, request.referenceImageId), eq(referenceImage.userId, userId)))
+        .limit(1);
+      if (fetchedRef) {
+        referenceImageData = fetchedRef;
+      }
+    }
+
     // 4. Create the scene record
     const [sceneRecord] = await db
       .insert(scene)
@@ -195,6 +224,7 @@ export async function generateInfluencerPhoto(
         jobId: job.id,
         order: 1,
         avatarId: request.avatarId,
+        productId: request.productId ?? undefined,
         prompt: request.prompt,
         status: "PROCESSING",
       })
@@ -210,17 +240,38 @@ export async function generateInfluencerPhoto(
         basePrompt: request.prompt,
         aspectRatio: aspectRatio,
         style: request.style ?? "casual",
+        productName: productData?.name ?? undefined,
+        includeProduct: !!productData,
       });
 
-      // 6. Generate the image
+      // 6. Build reference images array
+      const referenceImages: Array<{ url: string; type: "avatar" | "product" | "reference" }> = [
+        {
+          url: avatarData.referenceImageUrl,
+          type: "avatar",
+        },
+      ];
+
+      // Add product reference if present
+      if (productData) {
+        referenceImages.push({
+          url: productData.imageUrl,
+          type: "product",
+        });
+      }
+
+      // Add reference image if present
+      if (referenceImageData) {
+        referenceImages.push({
+          url: referenceImageData.imageUrl,
+          type: "reference",
+        });
+      }
+
+      // 7. Generate the image
       const result = await generateImage({
         prompt: optimizedPrompt,
-        referenceImages: [
-          {
-            url: avatarData.referenceImageUrl,
-            type: "avatar",
-          },
-        ],
+        referenceImages,
         aspectRatio: aspectRatio,
         resolution: "2K",
       });

@@ -307,6 +307,32 @@ export const auditLog = pgTable(
   ]
 );
 
+// Reference Image - User uploaded images for iterative editing
+export const referenceImage = pgTable(
+  "reference_image",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    imageUrl: text("image_url").notNull(),
+    description: text("description"),
+    metadata: jsonb("metadata").$type<{
+      width?: number;
+      height?: number;
+      format?: string;
+      sourceJobId?: string; // Link to original generation job if derived from output
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("reference_image_user_id_idx").on(table.userId)]
+);
+
 // ============================================================================
 // Relations
 // ============================================================================
@@ -318,6 +344,7 @@ export const userRelations = relations(user, ({ many }) => ({
   products: many(productAsset),
   jobs: many(generationJob),
   auditLogs: many(auditLog),
+  referenceImages: many(referenceImage),
 }));
 
 export const avatarRelations = relations(avatar, ({ one, many }) => ({
@@ -379,6 +406,13 @@ export const auditLogRelations = relations(auditLog, ({ one }) => ({
   }),
 }));
 
+export const referenceImageRelations = relations(referenceImage, ({ one }) => ({
+  user: one(user, {
+    fields: [referenceImage.userId],
+    references: [user.id],
+  }),
+}));
+
 // ============================================================================
 // Type Exports
 // ============================================================================
@@ -406,6 +440,9 @@ export type NewOutputAsset = typeof outputAsset.$inferInsert;
 
 export type AuditLog = typeof auditLog.$inferSelect;
 export type NewAuditLog = typeof auditLog.$inferInsert;
+
+export type ReferenceImage = typeof referenceImage.$inferSelect;
+export type NewReferenceImage = typeof referenceImage.$inferInsert;
 
 // Status and Role types
 export type UserStatus = "PENDING" | "APPROVED" | "DENIED" | "SUSPENDED";

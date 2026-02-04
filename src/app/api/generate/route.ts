@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       mode,
       avatarId,
       productId,
+      referenceImageId,
       prompt,
       scenes,
       productScenes,
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       mode: GenerationMode;
       avatarId?: string;
       productId?: string;
+      referenceImageId?: string;
       prompt?: string;
       scenes?: SceneConfig[];
       productScenes?: ProductSceneConfig[];
@@ -182,6 +184,8 @@ export async function POST(request: Request) {
           style: style || "casual",
           aspectRatio: (aspectRatio as "9:16" | "16:9" | "1:1") || "9:16",
           ...(title ? { title } : {}),
+          ...(productId ? { productId } : {}),
+          ...(referenceImageId ? { referenceImageId } : {}),
         });
 
         // Log the generation attempt

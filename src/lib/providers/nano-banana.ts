@@ -156,8 +156,10 @@ export function buildInfluencerPhotoPrompt(options: {
   basePrompt: string;
   aspectRatio?: string;
   style?: "casual" | "professional" | "lifestyle" | "selfie";
+  productName?: string | undefined;
+  includeProduct?: boolean;
 }): string {
-  const { basePrompt, aspectRatio = "9:16", style = "casual" } = options;
+  const { basePrompt, aspectRatio = "9:16", style = "casual", productName, includeProduct } = options;
 
   const styleDescriptions: Record<string, string> = {
     casual:
@@ -172,12 +174,17 @@ export function buildInfluencerPhotoPrompt(options: {
 
   const styleDesc = styleDescriptions[style] || styleDescriptions.casual;
 
+  // Build product context if provided
+  const productContext = includeProduct && productName
+    ? `\n\nProduct Integration: The subject is holding, wearing, or interacting with a product (${productName}). The product should be naturally integrated into the scene, clearly visible but not overly promotional-looking.`
+    : "";
+
   // Build the optimized prompt
   return `Create a photorealistic image for social media content.
 
 Subject: ${basePrompt}
 
-Style: ${styleDesc}
+Style: ${styleDesc}${productContext}
 
 Composition: ${aspectRatio === "9:16" ? "Vertical portrait format suitable for Instagram Stories/Reels or TikTok" : "Standard social media format"}
 
