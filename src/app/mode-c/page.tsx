@@ -236,6 +236,25 @@ export default function ModeCPage() {
     }
   };
 
+  const handleDeleteReferenceImage = async (id: string) => {
+    try {
+      const res = await fetch(`/api/reference-images/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete");
+      }
+
+      setReferenceImages(referenceImages.filter((img) => img.id !== id));
+      if (selectedReferenceImageId === id) {
+        setSelectedReferenceImageId("");
+      }
+    } catch (err) {
+      console.error("Failed to delete reference image:", err);
+    }
+  };
+
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -530,22 +549,29 @@ export default function ModeCPage() {
               ) : (
                 <div className="grid grid-cols-3 gap-2">
                   {referenceImages.map((img) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setSelectedReferenceImageId(img.id)}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedReferenceImageId === img.id
-                          ? "border-green-500 ring-2 ring-green-500/20"
-                          : "border-border hover:border-muted-foreground"
-                      }`}
-                    >
-                      <Image
-                        src={img.imageUrl}
-                        alt={img.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
+                    <div key={img.id} className="relative group">
+                      <button
+                        onClick={() => setSelectedReferenceImageId(img.id)}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all w-full ${
+                          selectedReferenceImageId === img.id
+                            ? "border-green-500 ring-2 ring-green-500/20"
+                            : "border-border hover:border-muted-foreground"
+                        }`}
+                      >
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReferenceImage(img.id)}
+                        className="absolute -top-1 -right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

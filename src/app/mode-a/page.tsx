@@ -582,22 +582,29 @@ export default function ModeAPage() {
               ) : (
                 <div className="grid grid-cols-3 gap-2">
                   {referenceImages.map((img) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setSelectedReferenceImageId(img.id)}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                        selectedReferenceImageId === img.id
-                          ? "border-blue-500 ring-2 ring-blue-500/20"
-                          : "border-border hover:border-muted-foreground"
-                      }`}
-                    >
-                      <Image
-                        src={img.imageUrl}
-                        alt={img.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
+                    <div key={img.id} className="relative group">
+                      <button
+                        onClick={() => setSelectedReferenceImageId(img.id)}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all w-full ${
+                          selectedReferenceImageId === img.id
+                            ? "border-blue-500 ring-2 ring-blue-500/20"
+                            : "border-border hover:border-muted-foreground"
+                        }`}
+                      >
+                        <Image
+                          src={img.imageUrl}
+                          alt={img.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReferenceImage(img.id)}
+                        className="absolute -top-1 -right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
