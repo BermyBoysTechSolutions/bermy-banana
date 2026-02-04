@@ -5,7 +5,7 @@ import { getSessionCookie } from "better-auth/cookies";
 // Protected routes that require auth
 const PROTECTED_ROUTES = ["/dashboard", "/chat", "/profile", "/avatars"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Log all API requests for debugging
