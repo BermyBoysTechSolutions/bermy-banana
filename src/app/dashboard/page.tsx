@@ -335,7 +335,7 @@ export default function DashboardPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Try <span className="font-mono font-medium">BERMY100</span> for 500 free credits (first 100 users)
+                  Promo codes are available through social media and special promotions
                 </p>
               </div>
             </div>

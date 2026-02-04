@@ -23,6 +23,8 @@ export function ExampleCarousel() {
       loop: true,
       align: "start",
       skipSnaps: false,
+      dragFree: false,
+      containScroll: false,
     },
     [Autoplay({ delay: 4000, stopOnInteraction: false })]
   );
@@ -57,11 +59,11 @@ export function ExampleCarousel() {
     <div className="relative w-full">
       {/* Carousel Container */}
       <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
-        <div className="flex gap-4">
+        <div className="flex gap-6">
           {SLIDES.map((slide) => (
             <div
               key={slide.id}
-              className="flex-[0_0_280px] min-w-0 sm:flex-[0_0_320px] lg:flex-[0_0_280px]"
+              className="flex-[0_0_280px] min-w-0 sm:flex-[0_0_320px] lg:flex-[0_0_280px] mr-4"
             >
               <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-zinc-800 shadow-lg border border-zinc-700/50 group">
                 {/* Placeholder Content - Replace with actual images/GIFs */}
