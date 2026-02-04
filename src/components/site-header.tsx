@@ -43,19 +43,25 @@ export function SiteHeader() {
             </Link>
           </h1>
           <div className="flex items-center gap-2 md:gap-3" role="group" aria-label="User actions">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
-              <Link href="/pricing">Pricing</Link>
-            </Button>
             {session && (
               <>
-                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-blue-500/10 hover:bg-blue-500/20 text-blue-500">
+                {/* Desktop only: Mode buttons */}
+                <Button asChild variant="ghost" size="sm" className="hidden lg:flex bg-blue-500/10 hover:bg-blue-500/20 text-blue-500">
                   <Link href="/mode-a">Mode A</Link>
                 </Button>
-                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-pink-500/10 hover:bg-pink-500/20 text-pink-500">
+                <Button asChild variant="ghost" size="sm" className="hidden lg:flex bg-pink-500/10 hover:bg-pink-500/20 text-pink-500">
                   <Link href="/mode-b">Mode B</Link>
                 </Button>
-                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-green-500/10 hover:bg-green-500/20 text-green-500">
+                <Button asChild variant="ghost" size="sm" className="hidden lg:flex bg-green-500/10 hover:bg-green-500/20 text-green-500">
                   <Link href="/mode-c">Mode C</Link>
+                </Button>
+                {/* Desktop: Upgrade button */}
+                <Button asChild size="sm" className="hidden md:flex bg-yellow-500 hover:bg-yellow-600 text-black">
+                  <Link href="/pricing">Upgrade</Link>
+                </Button>
+                {/* Mobile only: Upgrade button */}
+                <Button asChild size="sm" className="md:hidden bg-yellow-500 hover:bg-yellow-600 text-black">
+                  <Link href="/pricing">Upgrade</Link>
                 </Button>
               </>
             )}
