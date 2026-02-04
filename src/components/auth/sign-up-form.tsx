@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { signUp } from "@/lib/auth-client"
 
 export function SignUpForm() {
@@ -14,6 +15,7 @@ export function SignUpForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [error, setError] = useState("")
   const [isPending, setIsPending] = useState(false)
 
@@ -28,6 +30,11 @@ export function SignUpForm() {
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters")
+      return
+    }
+
+    if (!agreedToTerms) {
+      setError("You must agree to the Terms of Service and Privacy Policy")
       return
     }
 
@@ -103,6 +110,32 @@ export function SignUpForm() {
           required
           disabled={isPending}
         />
+      </div>
+      <div className="flex items-start space-x-2">
+        <Checkbox
+          id="terms"
+          checked={agreedToTerms}
+          onCheckedChange={(checked: boolean | "indeterminate") => setAgreedToTerms(checked === true)}
+          disabled={isPending}
+        />
+        <div className="grid gap-1.5 leading-none">
+          <Label
+            htmlFor="terms"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            I agree to the{" "}
+            <Link href="/terms" className="text-primary hover:underline" target="_blank">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            I confirm that I have the rights to use any content I upload and will not use this service to create unauthorized impersonations.
+          </p>
+        </div>
       </div>
       {error && (
         <p className="text-sm text-destructive">{error}</p>
