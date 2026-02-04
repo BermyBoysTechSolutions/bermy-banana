@@ -372,19 +372,19 @@ export default function AvatarsPage() {
               <CardHeader className="p-3">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-sm pt-1">{av.name}</CardTitle>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => {
                         setEditingId(av.id);
                         setEditDescription(av.description || "");
                       }}
-                      className="p-2 bg-blue-500 text-white rounded-md mr-2"
+                      className="p-2 bg-blue-500 text-white rounded-md mr-2 hover:bg-blue-600"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(av.id)}
-                      className="p-2 bg-red-500 text-white rounded-md"
+                      className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
