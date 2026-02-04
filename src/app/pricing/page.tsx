@@ -80,8 +80,6 @@ const pricingTiers: PricingTier[] = [
       "Multi-scene video workflows",
       "1080p output quality",
       "Priority processing",
-      "API access",
-      "Priority support",
     ],
   },
   {

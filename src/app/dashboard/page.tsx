@@ -313,7 +313,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Enter promo code (e.g., BERM100)"
+                    placeholder="Enter promo code"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleRedeemPromoCode()}
@@ -334,9 +334,6 @@ export default function DashboardPage() {
                     )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Promo codes are available through social media and special promotions
-                </p>
               </div>
             </div>
           ) : (
