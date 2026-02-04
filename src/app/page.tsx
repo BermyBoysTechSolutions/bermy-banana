@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Banana, Video, ImageIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
     <main className="flex-1 container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -25,12 +30,15 @@ export default function Home() {
         </div>
 
         <div className="flex justify-center gap-4">
-          <Button asChild size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
-            <Link href="/login">Get Started</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
+          {session ? (
+            <Button asChild size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+              <Link href="/pricing">Get Started</Link>
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">

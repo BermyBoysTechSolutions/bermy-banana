@@ -42,44 +42,22 @@ export function SiteHeader() {
               </span>
             </Link>
           </h1>
-          <div className="flex items-center gap-4" role="group" aria-label="User actions">
-            <Link
-              href="/pricing"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </Link>
-            {session ? (
+          <div className="flex items-center gap-2 md:gap-3" role="group" aria-label="User actions">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+              <Link href="/pricing">Pricing</Link>
+            </Button>
+            {session && (
               <>
-                <Link
-                  href="/mode-a"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Mode A
-                </Link>
-                <Link
-                  href="/mode-b"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Mode B
-                </Link>
-                <Link
-                  href="/mode-c"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Mode C
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Dashboard
-                </Link>
+                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-blue-500/10 hover:bg-blue-500/20 text-blue-500">
+                  <Link href="/mode-a">Mode A</Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-pink-500/10 hover:bg-pink-500/20 text-pink-500">
+                  <Link href="/mode-b">Mode B</Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm" className="hidden md:flex bg-green-500/10 hover:bg-green-500/20 text-green-500">
+                  <Link href="/mode-c">Mode C</Link>
+                </Button>
               </>
-            ) : (
-              <Button asChild variant="default" size="sm">
-                <Link href="/pricing">Get Started</Link>
-              </Button>
             )}
             <UserProfile />
             <ModeToggle />
