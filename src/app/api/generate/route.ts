@@ -127,6 +127,7 @@ export async function POST(request: Request) {
           scenes,
           title,
           audioEnabled: audioEnabled ?? true,
+          ...(referenceImageId ? { referenceImageId } : {}),
         });
 
         // Log the generation attempt
@@ -266,6 +267,7 @@ export async function POST(request: Request) {
           scenes: productScenes,
           title,
           audioEnabled: audioEnabled ?? true,
+          ...(referenceImageId ? { referenceImageId } : {}),
         });
 
         // Log the generation attempt

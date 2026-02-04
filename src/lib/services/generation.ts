@@ -55,6 +55,7 @@ export interface SceneConfig {
 export interface ModeAGenerationRequest {
   avatarId: string;
   productId?: string | undefined;
+  referenceImageId?: string | undefined;
   scenes: SceneConfig[];
   title?: string | undefined;
   audioEnabled?: boolean | undefined;
@@ -89,6 +90,7 @@ export interface ProductSceneConfig {
 export interface ModeCGenerationRequest {
   productId: string;
   avatarId?: string | undefined;
+  referenceImageId?: string | undefined;
   scenes: ProductSceneConfig[];
   title?: string | undefined;
   audioEnabled?: boolean | undefined;
@@ -523,6 +525,19 @@ export async function generateUGCVideo(
       }
     }
 
+    // Fetch reference image if selected
+    let referenceImageData: { imageUrl: string; name: string } | null = null;
+    if (request.referenceImageId) {
+      const [fetchedRef] = await db
+        .select()
+        .from(referenceImage)
+        .where(and(eq(referenceImage.id, request.referenceImageId), eq(referenceImage.userId, userId)))
+        .limit(1);
+      if (fetchedRef) {
+        referenceImageData = fetchedRef;
+      }
+    }
+
     for (let i = 0; i < request.scenes.length; i++) {
       const sceneConfig = request.scenes[i];
       if (!sceneConfig) continue;
@@ -599,6 +614,14 @@ export async function generateUGCVideo(
                             type: "product" as const,
                         });
                     }
+                }
+
+                // Add reference image if present
+                if (referenceImageData) {
+                    referenceImages.push({
+                        url: referenceImageData.imageUrl,
+                        type: "reference" as const,
+                    });
                 }
 
                 // Generate the video
@@ -769,6 +792,19 @@ export async function generateProductVideo(
       }
     }
 
+    // Fetch reference image if selected
+    let referenceImageData: { imageUrl: string; name: string } | null = null;
+    if (request.referenceImageId) {
+      const [fetchedRef] = await db
+        .select()
+        .from(referenceImage)
+        .where(and(eq(referenceImage.id, request.referenceImageId), eq(referenceImage.userId, userId)))
+        .limit(1);
+      if (fetchedRef) {
+        referenceImageData = fetchedRef;
+      }
+    }
+
     // 4. Create the job record
     const [job] = await db
       .insert(generationJob)
@@ -864,6 +900,14 @@ export async function generateProductVideo(
           referenceImages.push({
             url: avatarData.referenceImageUrl,
             type: "avatar" as const,
+          });
+        }
+
+        // Add reference image if present
+        if (referenceImageData) {
+          referenceImages.push({
+            url: referenceImageData.imageUrl,
+            type: "reference" as const,
           });
         }
 
