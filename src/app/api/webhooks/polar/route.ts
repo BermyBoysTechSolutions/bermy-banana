@@ -15,9 +15,9 @@ import { user } from "@/lib/schema";
 
 // Credit allocations per tier
 const TIER_CREDITS: Record<string, number> = {
-  starter: 2500,
-  pro: 6500,
-  agency: 15000,
+  starter: 800,
+  pro: 2400,
+  agency: 6000,
 };
 
 // Webhook secret for signature verification

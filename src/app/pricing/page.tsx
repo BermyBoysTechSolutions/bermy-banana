@@ -31,16 +31,17 @@ const pricingTiers: PricingTier[] = [
   {
     id: "starter",
     name: "Starter",
-    price: 25,
+    price: 39,
     description: "Perfect for creators just getting started",
-    credits: 2500,
-    videosPerMonth: 25,
-    imagesPerMonth: 50,
+    credits: 800,
+    videosPerMonth: 8,
+    imagesPerMonth: 16,
     productId: "polar_prod_starter", // Placeholder
     features: [
-      "2,500 credits per month",
-      "~25 videos (100 credits/scene)",
-      "~50 images (50 credits/image)",
+      "800 credits per month",
+      "~8 videos (100 credits/scene)",
+      "~16 images (50 credits/image)",
+      "All 3 generation modes",
       "Multi-scene video workflows",
       "1080p output quality",
       "Email support",
@@ -49,17 +50,18 @@ const pricingTiers: PricingTier[] = [
   {
     id: "pro",
     name: "Pro",
-    price: 59,
+    price: 79,
     description: "For serious content creators and small teams",
-    credits: 6500,
-    videosPerMonth: 65,
-    imagesPerMonth: 130,
+    credits: 2400,
+    videosPerMonth: 24,
+    imagesPerMonth: 48,
     productId: "polar_prod_pro", // Placeholder
     popular: true,
     features: [
-      "6,500 credits per month",
-      "~65 videos (100 credits/scene)",
-      "~130 images (50 credits/image)",
+      "2,400 credits per month",
+      "~24 videos (100 credits/scene)",
+      "~48 images (50 credits/image)",
+      "All 3 generation modes",
       "Multi-scene video workflows",
       "1080p output quality",
       "Priority processing",
@@ -70,16 +72,17 @@ const pricingTiers: PricingTier[] = [
   {
     id: "agency",
     name: "Agency",
-    price: 129,
+    price: 199,
     description: "For agencies and high-volume production",
-    credits: 15000,
-    videosPerMonth: 150,
-    imagesPerMonth: 300,
+    credits: 6000,
+    videosPerMonth: 60,
+    imagesPerMonth: 120,
     productId: "polar_prod_agency", // Placeholder
     features: [
-      "15,000 credits per month",
-      "~150 videos (100 credits/scene)",
-      "~300 images (50 credits/image)",
+      "6,000 credits per month",
+      "~60 videos (100 credits/scene)",
+      "~120 images (50 credits/image)",
+      "All 3 generation modes",
       "Multi-scene video workflows",
       "1080p output quality",
       "Fastest processing",
@@ -251,6 +254,16 @@ export default function PricingPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        {/* Competitor Comparison Link */}
+        <div className="text-center">
+          <a
+            href="/compare"
+            className="text-sm text-muted-foreground hover:text-yellow-500 transition-colors"
+          >
+            See how we compare to competitors →
+          </a>
         </div>
 
         {/* FAQ or Additional Info */}

@@ -16,6 +16,13 @@ export const CREDIT_COSTS = {
   IMAGE: 50,
 } as const;
 
+// Default credits per subscription tier
+export const TIER_CREDITS = {
+  STARTER: 800,
+  PRO: 2400,
+  AGENCY: 6000,
+} as const;
+
 export interface CreditCheckResult {
   allowed: boolean;
   remaining: number;
