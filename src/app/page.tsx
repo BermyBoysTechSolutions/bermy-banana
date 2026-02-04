@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Banana, Video, ImageIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
+import { ExampleCarousel } from "@/components/carousel/example-carousel";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -76,12 +77,16 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-12 p-6 border rounded-lg bg-muted/50">
-          <h3 className="text-lg font-semibold mb-2">Key Differentiator: Multi-Scene Workflow</h3>
-          <p className="text-muted-foreground">
-            Unlike competitors, Bermy Banana supports multi-scene videos with hook → demo → CTA
-            templates. Build complete ad creatives in one flow.
-          </p>
+        {/* Example Content Carousel */}
+        <div className="mt-16 pt-8 border-t border-zinc-800">
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold mb-2">See It In Action</h3>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Browse examples of AI-generated UGC content. From talking head videos 
+              to influencer-style photos and product demos.
+            </p>
+          </div>
+          <ExampleCarousel />
         </div>
       </div>
     </main>
