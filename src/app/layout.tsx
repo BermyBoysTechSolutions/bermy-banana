@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieBanner } from "@/components/cookie-banner";
 import type { Metadata } from "next";
 
 const geistSans = Geist({
@@ -89,6 +90,7 @@ export default function RootLayout({
           <SiteHeader />
           <main id="main-content">{children}</main>
           <SiteFooter />
+          <CookieBanner />
           <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
