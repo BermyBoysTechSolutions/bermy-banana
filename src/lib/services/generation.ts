@@ -65,7 +65,7 @@ export interface ModeAGenerationRequest {
  * Mode B generation request
  */
 export interface ModeBGenerationRequest {
-  avatarId: string;
+  avatarId?: string | undefined;
   prompt: string;
   style?: "casual" | "professional" | "lifestyle" | "selfie" | undefined;
   aspectRatio?: "9:16" | "16:9" | "1:1" | undefined;
@@ -161,19 +161,38 @@ export async function generateInfluencerPhoto(
       return { success: false, error: canGenerate.error ?? "Cannot generate" };
     }
 
-    // 2. Fetch the avatar
-    const [avatarData] = await db
-      .select()
-      .from(avatar)
-      .where(and(eq(avatar.id, request.avatarId), eq(avatar.userId, userId)))
-      .limit(1);
+    // 2. Fetch the avatar (if provided)
+    let avatarData: { id: string; name: string; referenceImageUrl: string; description: string | null } | null = null;
+    if (request.avatarId) {
+      const [fetchedAvatar] = await db
+        .select()
+        .from(avatar)
+        .where(and(eq(avatar.id, request.avatarId), eq(avatar.userId, userId)))
+        .limit(1);
+      avatarData = fetchedAvatar ?? null;
+    }
 
-    if (!avatarData) {
-      return { success: false, error: "Avatar not found" };
+    // 3. Fetch reference image (if provided)
+    let referenceImageData: { id: string; name: string; imageUrl: string; description: string | null } | null = null;
+    if (request.referenceImageId) {
+      const [fetchedRef] = await db
+        .select()
+        .from(referenceImage)
+        .where(and(eq(referenceImage.id, request.referenceImageId), eq(referenceImage.userId, userId)))
+        .limit(1);
+      referenceImageData = fetchedRef ?? null;
+    }
+
+    // Must have either avatar or reference image
+    if (!avatarData && !referenceImageData) {
+      return { success: false, error: "Either avatar or reference image must be provided" };
     }
 
     const aspectRatio = request.aspectRatio ?? "9:16";
     const configAspectRatio = aspectRatio === "1:1" ? "9:16" : aspectRatio;
+
+    // Determine the name for the job title
+    const sourceName = avatarData?.name ?? referenceImageData?.name ?? "Untitled";
 
     // 3. Create the job record
     const [job] = await db
@@ -182,7 +201,7 @@ export async function generateInfluencerPhoto(
         userId,
         mode: "MODE_B",
         status: "PROCESSING",
-        title: request.title ?? `Influencer Photo - ${avatarData.name}`,
+        title: request.title ?? `Influencer Photo - ${sourceName}`,
         config: {
           aspectRatio: configAspectRatio as "9:16" | "16:9",
         },
@@ -203,19 +222,6 @@ export async function generateInfluencerPhoto(
         .limit(1);
       if (fetchedProduct) {
         productData = fetchedProduct;
-      }
-    }
-
-    // Fetch optional reference image data
-    let referenceImageData: { imageUrl: string; name: string } | null = null;
-    if (request.referenceImageId) {
-      const [fetchedRef] = await db
-        .select()
-        .from(referenceImage)
-        .where(and(eq(referenceImage.id, request.referenceImageId), eq(referenceImage.userId, userId)))
-        .limit(1);
-      if (fetchedRef) {
-        referenceImageData = fetchedRef;
       }
     }
 
@@ -247,12 +253,15 @@ export async function generateInfluencerPhoto(
       });
 
       // 6. Build reference images array
-      const referenceImages: Array<{ url: string; type: "avatar" | "product" | "reference" }> = [
-        {
+      const referenceImages: Array<{ url: string; type: "avatar" | "product" | "reference" }> = [];
+
+      // Add avatar reference if present
+      if (avatarData) {
+        referenceImages.push({
           url: avatarData.referenceImageUrl,
           type: "avatar",
-        },
-      ];
+        });
+      }
 
       // Add product reference if present
       if (productData) {
