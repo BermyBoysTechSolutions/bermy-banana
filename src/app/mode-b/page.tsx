@@ -639,7 +639,7 @@ export default function ModeBPage() {
           {/* Generate Button */}
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating || !selectedAvatarId || !prompt.trim()}
+            disabled={isGenerating || (!selectedAvatarId && !selectedReferenceImageId) || !prompt.trim()}
             className="w-full"
             size="lg"
           >
