@@ -95,16 +95,12 @@ const bermyAdvantages = [
     description: "Use credits for videos OR images - total flexibility",
   },
   {
-    title: "Credit Rollover",
-    description: "Unused credits roll over for 30 days",
-  },
-  {
     title: "1080p Quality",
     description: "High-quality output on all plans",
   },
   {
-    title: "API Access",
-    description: "Available on Pro and Agency plans",
+    title: "Flexible Trial",
+    description: "$9 trial with 500 credits that never expire",
   },
 ];
 
@@ -240,9 +236,6 @@ export default function ComparePage() {
                     "Custom AI avatars",
                     "Multi-scene workflows",
                     "1080p output",
-                    "Credit rollover (30 days)",
-                    "API access (Pro+)",
-                    "White-label (Agency)",
                     "Priority support",
                   ].map((feature) => (
                     <div key={feature} className="flex items-center gap-2">
@@ -316,7 +309,7 @@ export default function ComparePage() {
               <a href="/pricing">Get Started</a>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <a href="/gallery">View Examples</a>
+              <a href="/examples">View Examples</a>
             </Button>
           </div>
         </div>
