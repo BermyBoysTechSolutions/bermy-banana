@@ -356,7 +356,7 @@ export default function ProductsPage() {
                 />
                 <button
                   onClick={() => handleDelete(product.id)}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                  className="absolute top-2 right-2 p-2 bg-destructive rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
