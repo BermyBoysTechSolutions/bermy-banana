@@ -13,11 +13,11 @@ export default function Home() {
     <main className="flex-1 container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto text-center space-y-8">
         <div className="space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-3 mb-2">
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-400/20">
               <Banana className="h-7 w-7 text-yellow-500" />
             </div>
-            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-600 bg-clip-text text-transparent text-center">
               Bermy Banana
             </h1>
           </div>

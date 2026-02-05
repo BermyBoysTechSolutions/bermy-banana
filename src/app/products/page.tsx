@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Plus, Trash2, Loader2, Package, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, Package, Upload, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,8 @@ interface Product {
   createdAt: string;
 }
 
+export const dynamic = "force-dynamic";
+
 export default function ProductsPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const [products, setProducts] = useState<Product[]>([]);
@@ -51,6 +53,11 @@ export default function ProductsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [isSavingDescription, setIsSavingDescription] = useState(false);
 
   // Fetch products
   useEffect(() => {
@@ -144,6 +151,29 @@ export default function ProductsPage() {
     }
   };
 
+  const handleSaveDescription = async (productId: string) => {
+    setIsSavingDescription(true);
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: editDescription }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProducts((prev) =>
+          prev.map((p) => (p.id === productId ? { ...p, description: data.product.description } : p))
+        );
+        setEditingId(null);
+      }
+    } catch (err) {
+      console.error("Failed to update product:", err);
+    } finally {
+      setIsSavingDescription(false);
+    }
+  };
+
   if (sessionLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -198,7 +228,7 @@ export default function ProductsPage() {
               New Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
               <DialogDescription>
@@ -248,9 +278,12 @@ export default function ProductsPage() {
                   placeholder="Brief product description..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  className="mt-1"
+                  rows={3}
+                  className="mt-1 text-sm"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This description is used to contextually understand the product.
+                </p>
               </div>
 
               <div>
@@ -264,7 +297,7 @@ export default function ProductsPage() {
                     className="hidden"
                   />
                   {previewUrl ? (
-                    <div className="relative aspect-square w-32 rounded-lg overflow-hidden border">
+                    <div className="relative aspect-square w-48 rounded-lg overflow-hidden border">
                       <Image
                         src={previewUrl}
                         alt="Preview"
@@ -278,19 +311,22 @@ export default function ProductsPage() {
                         }}
                         className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground transition-colors"
+                      className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-muted-foreground transition-colors"
                     >
-                      <Upload className="h-6 w-6 mb-1" />
+                      <Upload className="h-8 w-8 mb-2" />
                       <span className="text-sm">Click to upload</span>
                     </button>
                   )}
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  For best results, use a clear image of the product.
+                </p>
               </div>
 
               {error && (
@@ -344,7 +380,7 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
             <Card key={product.id} className="overflow-hidden group">
               <div className="relative aspect-square">
@@ -354,25 +390,71 @@ export default function ProductsPage() {
                   fill
                   className="object-cover"
                 />
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="absolute top-2 right-2 p-2 bg-destructive rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
               </div>
               <CardHeader className="p-3">
-                <CardTitle className="text-sm">{product.name}</CardTitle>
-                <CardDescription className="text-xs">
-                  {product.brand && <span>{product.brand}</span>}
-                  {product.brand && product.category && " · "}
-                  {product.category && <span>{product.category}</span>}
-                  {!product.brand && !product.category && (
-                    <span>
-                      Added {new Date(product.createdAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </CardDescription>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-sm pt-1">{product.name}</CardTitle>
+                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => {
+                        setEditingId(product.id);
+                        setEditDescription(product.description || "");
+                      }}
+                      className="p-2 bg-primary text-primary-foreground rounded-md mr-2 hover:bg-primary/90"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="p-2 bg-destructive text-white rounded-md hover:bg-destructive/90"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                {editingId === product.id ? (
+                  <div className="space-y-2 mt-1">
+                    <Textarea
+                      placeholder="Describe the product..."
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={3}
+                      className="text-xs"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleSaveDescription(product.id)}
+                        disabled={isSavingDescription}
+                        className="h-7 text-xs"
+                      >
+                        {isSavingDescription ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          "Save"
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingId(null)}
+                        className="h-7 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <CardDescription className="text-xs">
+                    {product.description ? (
+                      <span className="line-clamp-2">{product.description}</span>
+                    ) : (
+                      <span className="text-muted-foreground/60 italic">
+                        No description — click edit to add one
+                      </span>
+                    )}
+                  </CardDescription>
+                )}
               </CardHeader>
             </Card>
           ))}
