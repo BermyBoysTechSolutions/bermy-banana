@@ -26,7 +26,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Create stunning influencer photos, talking head videos, and product
-            demos with multi-scene workflows. Better than Arcads. Better than Speel.
+            demos with multi-scene workflows. Premium UGC quality without the premium agency markup.
           </p>
         </div>
 
