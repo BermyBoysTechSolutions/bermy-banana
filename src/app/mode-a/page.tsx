@@ -55,6 +55,7 @@ interface ReferenceImage {
 
 type SceneType = "hook" | "demo" | "cta" | "custom";
 type Duration = 5 | 6 | 8;
+type AspectRatio = "16:9" | "9:16" | "1:1";
 
 interface SceneConfig {
   id: string;
@@ -103,6 +104,12 @@ const DURATION_OPTIONS: { value: Duration; label: string }[] = [
   { value: 8, label: "8 sec" },
 ];
 
+const ASPECT_RATIO_OPTIONS: { value: AspectRatio; label: string; icon: React.ReactNode }[] = [
+  { value: "16:9", label: "16:9", icon: <div className="w-4 h-2.5 border-2 border-current rounded-sm" /> },
+  { value: "9:16", label: "9:16", icon: <div className="w-2.5 h-4 border-2 border-current rounded-sm" /> },
+  { value: "1:1", label: "1:1", icon: <div className="w-3.5 h-3.5 border-2 border-current rounded-sm" /> },
+];
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
@@ -122,6 +129,7 @@ export default function ModeAPage() {
   const [selectedReferenceImageId, setSelectedReferenceImageId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
   const [scenes, setScenes] = useState<SceneConfig[]>([
     { id: generateId(), type: "hook", script: "", action: "talking to camera energetically", setting: "", duration: 5 },
     { id: generateId(), type: "demo", script: "", action: "holding and showing the product", setting: "", duration: 6 },
@@ -345,6 +353,7 @@ export default function ModeAPage() {
         referenceImageId: selectedReferenceImageId || undefined,
         title: title.trim() || undefined,
         audioEnabled,
+        aspectRatio,
         scenes: scenes.map((s) => ({
           type: s.type,
           script: s.script.trim(),
@@ -684,6 +693,25 @@ export default function ModeAPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1"
                 />
+              </div>
+              <div>
+                <Label className="mb-2 block">Aspect Ratio</Label>
+                <div className="flex gap-2">
+                  {ASPECT_RATIO_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setAspectRatio(option.value)}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all flex-1 ${
+                        aspectRatio === option.value
+                          ? "border-blue-500 bg-blue-500/10 text-blue-600"
+                          : "border-border hover:border-muted-foreground"
+                      }`}
+                    >
+                      {option.icon}
+                      <span className="text-xs font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="audio">Generate with audio</Label>

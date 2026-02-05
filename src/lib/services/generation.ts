@@ -58,6 +58,7 @@ export interface ModeAGenerationRequest {
   referenceImageId?: string | undefined;
   scenes: SceneConfig[];
   title?: string | undefined;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | undefined;
   audioEnabled?: boolean | undefined;
 }
 
@@ -93,6 +94,7 @@ export interface ModeCGenerationRequest {
   referenceImageId?: string | undefined;
   scenes: ProductSceneConfig[];
   title?: string | undefined;
+  aspectRatio?: "16:9" | "9:16" | "1:1" | undefined;
   audioEnabled?: boolean | undefined;
 }
 
@@ -493,6 +495,7 @@ export async function generateUGCVideo(
     }
 
     // 3. Create the job record
+    const aspectRatio = request.aspectRatio ?? "9:16";
     const [job] = await db
       .insert(generationJob)
       .values({
@@ -501,7 +504,7 @@ export async function generateUGCVideo(
         status: "PROCESSING",
         title: request.title ?? `UGC Video - ${avatarData.name}`,
         config: {
-          aspectRatio: "9:16" as const,
+          aspectRatio,
           audioEnabled: request.audioEnabled ?? true,
         },
       })
@@ -638,7 +641,7 @@ export async function generateUGCVideo(
                 const result = await generateVideo({
                     prompt: videoPrompt,
                     referenceImages,
-                    aspectRatio: "9:16",
+                    aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
                     duration: sceneRecord.duration as 5 | 6 | 8,
                     audioEnabled: request.audioEnabled ?? true,
                 });
@@ -816,6 +819,7 @@ export async function generateProductVideo(
     }
 
     // 4. Create the job record
+    const aspectRatio = request.aspectRatio ?? "9:16";
     const [job] = await db
       .insert(generationJob)
       .values({
@@ -824,7 +828,7 @@ export async function generateProductVideo(
         status: "PROCESSING",
         title: request.title ?? `Product Video - ${productData.name}`,
         config: {
-          aspectRatio: "9:16" as const,
+          aspectRatio,
           audioEnabled: request.audioEnabled ?? true,
         },
       })
@@ -925,7 +929,7 @@ export async function generateProductVideo(
         const result = await generateVideo({
           prompt: videoPrompt,
           referenceImages,
-          aspectRatio: "9:16",
+          aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
           duration: sceneRecord.duration as 5 | 6 | 8,
           audioEnabled: request.audioEnabled ?? true,
         });

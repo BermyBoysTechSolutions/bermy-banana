@@ -185,8 +185,8 @@ export async function generateVideo(
   try {
     const client = getClient();
 
-    // Map aspect ratio
-    const aspectRatio = request.aspectRatio === "16:9" ? "16:9" : "9:16";
+    // Map aspect ratio - Veo supports 16:9, 9:16, and 1:1
+    const aspectRatio = request.aspectRatio === "16:9" ? "16:9" : request.aspectRatio === "1:1" ? "1:1" : "9:16";
 
     // Build config - minimal config to avoid unsupported parameter errors
     const config: Record<string, unknown> = {

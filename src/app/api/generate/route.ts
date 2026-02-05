@@ -70,6 +70,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate aspect ratio if provided
+    const validAspectRatios = ["16:9", "9:16", "1:1"];
+    if (aspectRatio && !validAspectRatios.includes(aspectRatio)) {
+      return NextResponse.json(
+        { error: "Invalid aspect ratio. Must be 16:9, 9:16, or 1:1" },
+        { status: 400 }
+      );
+    }
+
     // Get request metadata for audit logging
     const ipAddress = headersList.get("x-forwarded-for") || "unknown";
     const userAgent = headersList.get("user-agent") || "unknown";
@@ -126,6 +135,7 @@ export async function POST(request: Request) {
           productId,
           scenes,
           title,
+          aspectRatio: (aspectRatio as "16:9" | "9:16" | "1:1") || "9:16",
           audioEnabled: audioEnabled ?? true,
           ...(referenceImageId ? { referenceImageId } : {}),
         });
@@ -266,6 +276,7 @@ export async function POST(request: Request) {
           avatarId,
           scenes: productScenes,
           title,
+          aspectRatio: (aspectRatio as "16:9" | "9:16" | "1:1") || "9:16",
           audioEnabled: audioEnabled ?? true,
           ...(referenceImageId ? { referenceImageId } : {}),
         });

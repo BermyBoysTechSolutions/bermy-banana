@@ -37,6 +37,7 @@ interface ReferenceImage {
 }
 
 type Style = "casual" | "professional" | "lifestyle" | "selfie";
+type AspectRatio = "16:9" | "9:16" | "1:1";
 
 const STYLE_OPTIONS: { value: Style; label: string; description: string }[] = [
   {
@@ -61,6 +62,12 @@ const STYLE_OPTIONS: { value: Style; label: string; description: string }[] = [
   },
 ];
 
+const ASPECT_RATIO_OPTIONS: { value: AspectRatio; label: string; icon: React.ReactNode }[] = [
+  { value: "16:9", label: "16:9", icon: <div className="w-4 h-2.5 border-2 border-current rounded-sm" /> },
+  { value: "9:16", label: "9:16", icon: <div className="w-2.5 h-4 border-2 border-current rounded-sm" /> },
+  { value: "1:1", label: "1:1", icon: <div className="w-3.5 h-3.5 border-2 border-current rounded-sm" /> },
+];
+
 export default function ModeBPage() {
   const { data: session, isPending: sessionLoading } = useSession();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
@@ -76,6 +83,7 @@ export default function ModeBPage() {
   const [selectedReferenceImageId, setSelectedReferenceImageId] = useState<string>("");
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState<Style>("casual");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
   const [title, setTitle] = useState("");
 
   // Upload dialog state
@@ -212,7 +220,7 @@ export default function ModeBPage() {
         prompt: prompt.trim(),
         style,
         title: title.trim() || undefined,
-        aspectRatio: "9:16",
+        aspectRatio,
       };
 
       // Use reference image if selected, otherwise use avatar
@@ -598,10 +606,38 @@ export default function ModeBPage() {
             </CardContent>
           </Card>
 
+          {/* Aspect Ratio Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">5. Aspect Ratio</CardTitle>
+              <CardDescription>
+                Choose the output format
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                {ASPECT_RATIO_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setAspectRatio(option.value)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border transition-all flex-1 ${
+                      aspectRatio === option.value
+                        ? "border-pink-500 bg-pink-500/10 text-pink-600"
+                        : "border-border hover:border-muted-foreground"
+                    }`}
+                  >
+                    {option.icon}
+                    <span className="text-sm font-medium">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Prompt */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">5. Describe the Scene</CardTitle>
+              <CardTitle className="text-lg">6. Describe the Scene</CardTitle>
               <CardDescription>
                 What should the avatar be doing? Where are they?
                 {selectedProductId && (

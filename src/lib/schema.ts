@@ -211,7 +211,7 @@ export const generationJob = pgTable(
     status: text("status").default("PENDING").notNull(), // PENDING | PROCESSING | COMPLETED | FAILED
     title: text("title"),
     config: jsonb("config").$type<{
-      aspectRatio?: "9:16" | "16:9";
+      aspectRatio?: "9:16" | "16:9" | "1:1";
       audioEnabled?: boolean;
       templateId?: string;
     }>(),
