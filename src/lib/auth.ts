@@ -2,8 +2,11 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./db"
 
+// Remove trailing slash from baseURL to avoid issues
+const baseURL = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "")
+
 export const auth = betterAuth({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  baseURL,
   trustedOrigins: [
     "http://localhost:3000",
     "https://bermybanana.com",
@@ -14,6 +17,10 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  advanced: {
+    cookiePrefix: "bermy-banana",
+    disableCSRFCheck: false,
+  },
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
