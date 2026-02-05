@@ -387,14 +387,9 @@ You're receiving this because your Bermy Banana credits are below 20%.
 
 /**
  * Escape HTML special characters to prevent XSS
+ * Server-safe implementation (no DOM dependency)
  */
 function escapeHtml(text: string): string {
-  const div = typeof document !== 'undefined' ? document.createElement('div') : null;
-  if (div) {
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  // Server-side fallback
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

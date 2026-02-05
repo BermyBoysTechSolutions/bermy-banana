@@ -281,14 +281,9 @@ Need help? Reply to this email or visit our documentation at ${appUrl}/docs
 
 /**
  * Escape HTML special characters to prevent XSS
+ * Server-safe implementation (no DOM dependency)
  */
 function escapeHtml(text: string): string {
-  const div = typeof document !== 'undefined' ? document.createElement('div') : null;
-  if (div) {
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  // Server-side fallback
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

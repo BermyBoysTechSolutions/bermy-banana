@@ -3,6 +3,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "./db"
 
 export const auth = betterAuth({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://bermybanana.com",
+    "https://www.bermybanana.com",
+    "https://bermy-banana.vercel.app",
+    "https://bermy-banana.vwdp.vercel.app",
+  ],
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
