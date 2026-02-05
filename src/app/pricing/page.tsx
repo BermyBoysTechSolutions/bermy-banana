@@ -99,7 +99,6 @@ const pricingTiers: PricingTier[] = [
       "Multi-scene video workflows",
       "1080p output quality",
       "Fastest processing",
-      "API access",
       "White-label options",
       "Dedicated support",
       "Team collaboration",
