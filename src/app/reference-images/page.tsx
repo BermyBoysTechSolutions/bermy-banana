@@ -415,7 +415,7 @@ export default function ReferenceImagesPage() {
                       <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => startEditing(img)}
-                          className="p-2 bg-yellow-500 text-black rounded-md mr-2 hover:bg-yellow-600"
+                          className="p-2 bg-primary text-primary-foreground rounded-md mr-2 hover:bg-primary/90"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
