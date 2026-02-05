@@ -17,10 +17,6 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-  advanced: {
-    cookiePrefix: "bermy-banana",
-    disableCSRFCheck: false,
-  },
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ user, url }) => {
