@@ -378,7 +378,7 @@ export default function AvatarsPage() {
                         setEditingId(av.id);
                         setEditDescription(av.description || "");
                       }}
-                      className="p-2 bg-primary text-primary-foreground rounded-md mr-2 hover:bg-primary/90"
+                      className="p-2 bg-yellow-500 text-black rounded-md mr-2 hover:bg-yellow-600"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
