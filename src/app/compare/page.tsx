@@ -38,7 +38,7 @@ const competitors: Competitor[] = [
     ],
     features: {
       included: ["AI avatars", "Basic templates", "1080p export"],
-      excluded: ["All 3 generation modes", "API access (lower tiers)", "White-label options"],
+      excluded: ["All 3 generation modes"],
     },
   },
   {
@@ -51,7 +51,7 @@ const competitors: Competitor[] = [
     ],
     features: {
       included: ["AI presenters", "Multi-language", "Basic analytics"],
-      excluded: ["No free trial", "Custom branding", "API access"],
+      excluded: ["Trial"],
     },
   },
 ];
