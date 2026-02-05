@@ -525,11 +525,11 @@ export default function DashboardPage() {
 
       {/* Quick Links */}
       <h2 className="text-xl font-semibold mb-4">Manage Assets</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="p-6 border border-border rounded-lg">
           <h3 className="text-lg font-semibold mb-2">Avatars</h3>
           <p className="text-muted-foreground mb-4 text-sm">
-            Manage your AI personas and reference images
+            Manage your AI personas for content generation
           </p>
           <Button asChild variant="outline">
             <Link href="/avatars">View Avatars</Link>
@@ -543,6 +543,16 @@ export default function DashboardPage() {
           </p>
           <Button asChild variant="outline">
             <Link href="/products">View Products</Link>
+          </Button>
+        </div>
+
+        <div className="p-6 border border-border rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Reference Images</h3>
+          <p className="text-muted-foreground mb-4 text-sm">
+            Upload and manage reference images for avatar training
+          </p>
+          <Button asChild variant="outline">
+            <Link href="/reference-images">View Reference Images</Link>
           </Button>
         </div>
       </div>

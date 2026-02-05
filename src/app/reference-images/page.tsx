@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Plus, Trash2, Loader2, User, Upload, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Loader2, ImageIcon, Upload, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,25 +25,19 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth-client";
 
-interface Avatar {
+interface ReferenceImage {
   id: string;
   name: string;
   description?: string | null;
-  referenceImageUrl: string;
-  metadata?: {
-    gender?: string;
-    ageRange?: string;
-    ethnicity?: string;
-    style?: string;
-  };
+  imageUrl: string;
   createdAt: string;
 }
 
 export const dynamic = "force-dynamic";
 
-export default function AvatarsPage() {
+export default function ReferenceImagesPage() {
   const { data: session, isPending: sessionLoading } = useSession();
-  const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [images, setImages] = useState<ReferenceImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -58,27 +52,28 @@ export default function AvatarsPage() {
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [isSavingDescription, setIsSavingDescription] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch avatars
+  // Fetch reference images
   useEffect(() => {
-    async function fetchAvatars() {
+    async function fetchImages() {
       try {
-        const res = await fetch("/api/avatars");
+        const res = await fetch("/api/reference-images");
         if (res.ok) {
           const data = await res.json();
-          setAvatars(data.avatars || []);
+          setImages(data.images || []);
         }
       } catch (err) {
-        console.error("Failed to fetch avatars:", err);
+        console.error("Failed to fetch reference images:", err);
       } finally {
         setLoading(false);
       }
     }
 
     if (session) {
-      fetchAvatars();
+      fetchImages();
     }
   }, [session]);
 
@@ -102,13 +97,13 @@ export default function AvatarsPage() {
 
     try {
       const formData = new FormData();
+      formData.append("file", selectedFile);
       formData.append("name", name.trim());
       if (description.trim()) {
         formData.append("description", description.trim());
       }
-      formData.append("image", selectedFile);
 
-      const res = await fetch("/api/avatars", {
+      const res = await fetch("/api/reference-images", {
         method: "POST",
         body: formData,
       });
@@ -116,11 +111,11 @@ export default function AvatarsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || data.message || "Failed to create avatar");
+        throw new Error(data.error || data.message || "Failed to upload image");
       }
 
-      // Add the new avatar to the list
-      setAvatars((prev) => [data.avatar, ...prev]);
+      // Add the new image to the list
+      setImages((prev) => [data.image, ...prev]);
 
       // Reset form
       setName("");
@@ -129,49 +124,58 @@ export default function AvatarsPage() {
       setPreviewUrl(null);
       setDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create avatar");
+      setError(err instanceof Error ? err.message : "Failed to upload image");
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleDelete = async (avatarId: string) => {
-    if (!confirm("Are you sure you want to delete this avatar?")) return;
+  const handleDelete = async (imageId: string) => {
+    if (!confirm("Are you sure you want to delete this reference image?")) return;
 
     try {
-      const res = await fetch(`/api/avatars/${avatarId}`, {
+      const res = await fetch(`/api/reference-images/${imageId}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        setAvatars((prev) => prev.filter((a) => a.id !== avatarId));
+        setImages((prev) => prev.filter((img) => img.id !== imageId));
       }
     } catch (err) {
-      console.error("Failed to delete avatar:", err);
+      console.error("Failed to delete reference image:", err);
     }
   };
 
-  const handleSaveDescription = async (avatarId: string) => {
-    setIsSavingDescription(true);
+  const handleSaveEdit = async (imageId: string) => {
+    setIsSaving(true);
     try {
-      const res = await fetch(`/api/avatars/${avatarId}`, {
+      const res = await fetch(`/api/reference-images/${imageId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: editDescription }),
+        body: JSON.stringify({ 
+          name: editName,
+          description: editDescription 
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        setAvatars((prev) =>
-          prev.map((a) => (a.id === avatarId ? { ...a, description: data.avatar.description } : a))
+        setImages((prev) =>
+          prev.map((img) => (img.id === imageId ? { ...img, name: data.image.name, description: data.image.description } : img))
         );
         setEditingId(null);
       }
     } catch (err) {
-      console.error("Failed to update avatar:", err);
+      console.error("Failed to update reference image:", err);
     } finally {
-      setIsSavingDescription(false);
+      setIsSaving(false);
     }
+  };
+
+  const startEditing = (image: ReferenceImage) => {
+    setEditingId(image.id);
+    setEditName(image.name);
+    setEditDescription(image.description || "");
   };
 
   if (sessionLoading) {
@@ -187,7 +191,7 @@ export default function AvatarsPage() {
       <div className="container mx-auto px-4 py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Sign in Required</h1>
         <p className="text-muted-foreground mb-6">
-          Please sign in to manage your avatars.
+          Please sign in to manage your reference images.
         </p>
         <Button asChild>
           <Link href="/login">Sign In</Link>
@@ -211,13 +215,13 @@ export default function AvatarsPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/10">
-              <User className="h-5 w-5 text-purple-500" />
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-500/10">
+              <ImageIcon className="h-5 w-5 text-orange-500" />
             </div>
-            Avatars
+            Reference Images
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage your AI personas for content generation
+            Upload and manage reference images for avatar training
           </p>
         </div>
 
@@ -225,14 +229,14 @@ export default function AvatarsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Avatar
+              Upload Image
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Avatar</DialogTitle>
+              <DialogTitle>Upload Reference Image</DialogTitle>
               <DialogDescription>
-                Upload a reference image to create a new AI avatar.
+                Upload an image to use as a reference for avatar training.
               </DialogDescription>
             </DialogHeader>
 
@@ -241,7 +245,7 @@ export default function AvatarsPage() {
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Sofia, Alex, etc."
+                  placeholder="e.g., Beach Scene, Office Setting, etc."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1"
@@ -252,19 +256,16 @@ export default function AvatarsPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
-                  placeholder="Describe the avatar's appearance in detail, e.g., 'Young woman in her mid-20s with long brown hair, tan skin, bright smile, wearing a white t-shirt'"
+                  placeholder="Describe the reference image..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   className="mt-1 text-sm"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This description is used to generate consistent-looking videos of your avatar.
-                </p>
               </div>
 
               <div>
-                <Label>Reference Image</Label>
+                <Label>Image File</Label>
                 <div className="mt-1">
                   <input
                     type="file"
@@ -288,7 +289,7 @@ export default function AvatarsPage() {
                         }}
                         className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
@@ -302,8 +303,7 @@ export default function AvatarsPage() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  For best results, use a clear, front-facing photo with good
-                  lighting.
+                  Supported formats: JPEG, PNG, GIF, WebP (max 10MB)
                 </p>
               </div>
 
@@ -327,10 +327,10 @@ export default function AvatarsPage() {
                   {isCreating ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
+                      Uploading...
                     </>
                   ) : (
-                    "Create Avatar"
+                    "Upload Image"
                   )}
                 </Button>
               </div>
@@ -343,70 +343,56 @@ export default function AvatarsPage() {
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : avatars.length === 0 ? (
+      ) : images.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No avatars yet</h3>
+            <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No reference images yet</h3>
             <p className="text-muted-foreground mb-4">
-              Create your first avatar to start generating content.
+              Upload your first reference image to use for avatar training.
             </p>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Avatar
+              Upload Your First Image
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {avatars.map((av) => (
-            <Card key={av.id} className="overflow-hidden group">
+          {images.map((img) => (
+            <Card key={img.id} className="overflow-hidden group">
               <div className="relative aspect-square">
                 <Image
-                  src={av.referenceImageUrl}
-                  alt={av.name}
+                  src={img.imageUrl}
+                  alt={img.name}
                   fill
                   className="object-cover"
                 />
               </div>
               <CardHeader className="p-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-sm pt-1">{av.name}</CardTitle>
-                  <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => {
-                        setEditingId(av.id);
-                        setEditDescription(av.description || "");
-                      }}
-                      className="p-2 bg-primary text-primary-foreground rounded-md mr-2 hover:bg-primary/90"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(av.id)}
-                      className="p-2 bg-destructive text-white rounded-md hover:bg-destructive/90"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                {editingId === av.id ? (
-                  <div className="space-y-2 mt-1">
+                {editingId === img.id ? (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Name"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="text-sm"
+                    />
                     <Textarea
-                      placeholder="Describe the avatar's appearance..."
+                      placeholder="Description..."
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      rows={3}
+                      rows={2}
                       className="text-xs"
                     />
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => handleSaveDescription(av.id)}
-                        disabled={isSavingDescription}
+                        onClick={() => handleSaveEdit(img.id)}
+                        disabled={isSaving}
                         className="h-7 text-xs"
                       >
-                        {isSavingDescription ? (
+                        {isSaving ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
                           "Save"
@@ -423,15 +409,34 @@ export default function AvatarsPage() {
                     </div>
                   </div>
                 ) : (
-                  <CardDescription className="text-xs">
-                    {av.description ? (
-                      <span className="line-clamp-2">{av.description}</span>
-                    ) : (
-                      <span className="text-muted-foreground/60 italic">
-                        No description — click edit to add one
-                      </span>
-                    )}
-                  </CardDescription>
+                  <>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-sm pt-1">{img.name}</CardTitle>
+                      <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => startEditing(img)}
+                          className="p-2 bg-primary text-primary-foreground rounded-md mr-2 hover:bg-primary/90"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(img.id)}
+                          className="p-2 bg-destructive text-white rounded-md hover:bg-destructive/90"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <CardDescription className="text-xs">
+                      {img.description ? (
+                        <span className="line-clamp-2">{img.description}</span>
+                      ) : (
+                        <span className="text-muted-foreground/60 italic">
+                          No description — click edit to add one
+                        </span>
+                      )}
+                    </CardDescription>
+                  </>
                 )}
               </CardHeader>
             </Card>
@@ -441,6 +446,3 @@ export default function AvatarsPage() {
     </div>
   );
 }
-// Trigger deploy
-// Test deploy Wed Feb  4 10:02:37 AM EST 2026
-// Auto-deploy test 1770217665
