@@ -1,36 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getUserCredits, deductCredits } from '@/lib/polar'
+import { db } from '@/lib/db'
+import { user } from '@/lib/schema'
+import { eq } from 'drizzle-orm'
 
 // GET /api/user/credits - Get user's credit balance
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers })
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
-    
-    const creditInfo = await getUserCredits(session.user.id)
-    
-    if (!creditInfo) {
-      return NextResponse.json({ error: 'No credit information found' }, { status: 404 })
+
+    const [userRecord] = await db
+      .select({
+        subscriptionTier: user.subscriptionTier,
+        subscriptionStatus: user.subscriptionStatus,
+        creditsRemaining: user.creditsRemaining,
+        creditsTotal: user.creditsTotal,
+      })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1)
+
+    if (!userRecord) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
-    
-    // Check affordability for each video type
-    const canGenerate = {
-      veo: creditInfo.current >= 100,
-      klingStandard: creditInfo.current >= 150,
-      klingPro: creditInfo.current >= 200
-    }
-    
+
     return NextResponse.json({
-      current: creditInfo.current,
-      total: creditInfo.total,
-      resetDate: creditInfo.resetDate,
-      canGenerate
+      subscriptionTier: userRecord.subscriptionTier,
+      subscriptionStatus: userRecord.subscriptionStatus,
+      creditsRemaining: userRecord.creditsRemaining,
+      creditsTotal: userRecord.creditsTotal,
+      canGenerate: {
+        veo: userRecord.creditsRemaining >= 100,
+        klingStandard: userRecord.creditsRemaining >= 150,
+        klingPro: userRecord.creditsRemaining >= 200,
+      },
     })
-    
+
   } catch (error) {
     console.error('Error fetching credits:', error)
     return NextResponse.json(
@@ -43,35 +52,44 @@ export async function GET(req: NextRequest) {
 // POST /api/user/credits/deduct - Deduct credits for generation
 export async function POST(req: NextRequest) {
   try {
-    const user = await auth.api.getSession({ headers: req.headers })
-    
-    if (!user) {
+    const session = await auth.api.getSession({ headers: req.headers })
+
+    if (!session) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
-    
+
     const { credits } = await req.json()
-    
+
     if (!credits || credits <= 0) {
       return NextResponse.json(
         { error: 'Invalid credit amount' },
         { status: 400 }
       )
     }
-    
-    const result = await deductCredits(user.user.id, credits)
-    
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        remainingCredits: result.remainingCredits
-      })
-    } else {
+
+    const [userRecord] = await db
+      .select({ creditsRemaining: user.creditsRemaining })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1)
+
+    if (!userRecord || userRecord.creditsRemaining < credits) {
       return NextResponse.json(
-        { error: 'Failed to deduct credits' },
-        { status: 500 }
+        { error: 'Insufficient credits' },
+        { status: 402 }
       )
     }
-    
+
+    await db
+      .update(user)
+      .set({ creditsRemaining: userRecord.creditsRemaining - credits })
+      .where(eq(user.id, session.user.id))
+
+    return NextResponse.json({
+      success: true,
+      remainingCredits: userRecord.creditsRemaining - credits,
+    })
+
   } catch (error) {
     console.error('Error deducting credits:', error)
     return NextResponse.json(
