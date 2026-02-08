@@ -5,7 +5,7 @@ import { getUserSubscription, getCreditAnalytics, canAffordGeneration } from '@/
 // GET /api/user/subscription - Get user's subscription status
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await auth.api.getSession({ headers: req.headers })
     
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
