@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createKlingProvider } from '@/lib/providers/kling';
-import { createKlingProvider } from '@/lib/providers/kling';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { users } from '@/lib/schema';
+import { user } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -18,10 +17,6 @@ const generateSchema = z.object({
   duration: z.number().min(5).max(10).optional(),
   aspectRatio: z.enum(['9:16', '16:9']).optional(),
   tier: z.enum(['standard', 'pro']).default('standard'),
-});
-
-const pollSchema = z.object({
-  taskId: z.string().min(1),
 });
 
 /**
@@ -44,7 +39,7 @@ export async function POST(request: NextRequest) {
     const validation = generateSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.errors },
+        { error: 'Invalid request', details: validation.error },
         { status: 400 }
       );
     }
@@ -52,8 +47,10 @@ export async function POST(request: NextRequest) {
     const { prompt, duration = 7, aspectRatio = '9:16', tier } = validation.data;
 
     // Check user credits
-    const user = await db.select().from(users).where(eq(users.id, session.user.id)).limit(1);
-    if (!user[0]) {
+    const userResult = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+    const userRecord = userResult[0];
+    
+    if (!userRecord) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -61,9 +58,9 @@ export async function POST(request: NextRequest) {
     }
 
     const creditsRequired = tier === 'pro' ? 300 : 150;
-    if (user[0].credits < creditsRequired) {
+    if (userRecord.creditsRemaining < creditsRequired) {
       return NextResponse.json(
-        { error: 'Insufficient credits', required: creditsRequired, available: user[0].credits },
+        { error: 'Insufficient credits', required: creditsRequired, available: userRecord.creditsRemaining },
         { status: 402 }
       );
     }
@@ -80,9 +77,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Deduct credits immediately
-    await db.update(users)
-      .set({ credits: user[0].credits - creditsUsed })
-      .where(eq(users.id, session.user.id));
+    await db.update(user)
+      .set({ creditsRemaining: userRecord.creditsRemaining - creditsUsed })
+      .where(eq(user.id, session.user.id));
 
     return NextResponse.json({
       success: true,
@@ -132,6 +129,18 @@ export async function GET(request: NextRequest) {
     }
 
     const finalStatus = statusUpdates[statusUpdates.length - 1];
+
+    if (!finalStatus) {
+      return NextResponse.json({
+        success: true,
+        taskId,
+        status: 'pending',
+        progress: 0,
+        resultUrl: null,
+        error: null,
+        updates: statusUpdates,
+      });
+    }
 
     return NextResponse.json({
       success: true,

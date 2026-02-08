@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
-import { getUserSubscription, getCreditAnalytics, canAffordGeneration } from '@/lib/polar'
+import { auth } from '@/lib/auth'
+import { getUserSubscription } from '@/lib/polar'
 
 // GET /api/user/subscription - Get user's subscription status
 export async function GET(req: NextRequest) {
   try {
-    const user = await auth.api.getSession({ headers: req.headers })
+    const session = await auth.api.getSession({ headers: req.headers })
     
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
     
-    const subscription = await getUserSubscription(user.id)
+    const subscription = await getUserSubscription(session.user.id)
     
     return NextResponse.json({
       subscription,

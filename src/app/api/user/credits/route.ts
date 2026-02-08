@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
+import { auth } from '@/lib/auth'
 import { getUserCredits, deductCredits } from '@/lib/polar'
 
 // GET /api/user/credits - Get user's credit balance
 export async function GET(req: NextRequest) {
   try {
-    const user = await auth.api.getSession({ headers: req.headers })
+    const session = await auth.api.getSession({ headers: req.headers })
     
-    if (!user) {
+    if (!session) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
     
-    const creditInfo = await getUserCredits(user.id)
+    const creditInfo = await getUserCredits(session.user.id)
     
     if (!creditInfo) {
       return NextResponse.json({ error: 'No credit information found' }, { status: 404 })
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       )
     }
     
-    const result = await deductCredits(user.id, credits)
+    const result = await deductCredits(user.user.id, credits)
     
     if (result.success) {
       return NextResponse.json({

@@ -22,10 +22,8 @@ const nextConfig: NextConfig = {
   // Enable compression
   compress: true,
   
-  // Ensure dynamic rendering for auth
-  experimental: {
-    serverComponentsExternalPackages: ['@polar-sh/sdk'],
-  },
+  // External packages for server components
+  serverExternalPackages: ['@polar-sh/sdk'],
 
   // Security headers
   async headers() {

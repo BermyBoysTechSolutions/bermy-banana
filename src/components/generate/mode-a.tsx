@@ -47,6 +47,11 @@ export default function ModeA({ onGenerate, isGenerating = false }: ModeAProps) 
   // Get current generator
   const currentGenerator = generatorOptions.find(g => g.id === selectedGenerator) || generatorOptions[0];
 
+  // Safety check
+  if (!currentGenerator) {
+    return <div>No generators available</div>;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

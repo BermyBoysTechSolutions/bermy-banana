@@ -17,7 +17,7 @@ function verifyWebhookSignature(payload: string, signature: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const headersList = headers()
+    const headersList = await headers()
     const signature = headersList.get('polar-signature')
     const body = await req.text()
     

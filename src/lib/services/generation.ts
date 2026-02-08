@@ -22,7 +22,6 @@ import {
   buildInfluencerPhotoPrompt,
 } from "@/lib/providers/nano-banana";
 import {
-  generateVideo,
   buildUGCVideoPrompt,
   buildProductVideoPrompt,
   generateConcatScript,
@@ -118,7 +117,7 @@ export async function canUserGenerate(
   userId: string,
   mode: GenerationMode,
   sceneCount: number = 1,
-  videoGenerator?: VideoGenerator
+  _videoGenerator?: VideoGenerator
 ): Promise<{ allowed: boolean; error?: string | undefined }> {
   // Check user approval status
   const [userData] = await db

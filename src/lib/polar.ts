@@ -1,9 +1,8 @@
-import { PolarApi } from '@polar-sh/sdk'
+import { Polar } from '@polar-sh/sdk'
 
 // Polar configuration
-const polar = new PolarApi({
+const polar = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN!,
-  organizationId: process.env.POLAR_ORGANIZATION_ID!
 })
 
 // Credit allocation by subscription tier
@@ -38,15 +37,14 @@ export const VIDEO_COSTS = {
 // Initialize Polar with your auth key
 export async function initializePolar() {
   try {
-    // Test connection
     const organization = await polar.organizations.get({
       id: process.env.POLAR_ORGANIZATION_ID!
     })
-    
-    console.log('✅ Polar connected:', organization.name)
+
+    console.log('Polar connected:', organization.name)
     return true
   } catch (error) {
-    console.error('❌ Polar connection failed:', error)
+    console.error('Polar connection failed:', error)
     return false
   }
 }
@@ -54,11 +52,17 @@ export async function initializePolar() {
 // Get user subscription details
 export async function getUserSubscription(userId: string) {
   try {
-    const subscriptions = await polar.subscriptions.list({
-      query: userId
+    const result = await polar.subscriptions.list({
+      organizationId: process.env.POLAR_ORGANIZATION_ID!,
     })
-    
-    return subscriptions.items?.[0] || null
+
+    // Iterate through pages to find user's subscription by customer ID
+    for await (const page of result) {
+      const items = page.result?.items ?? []
+      const match = items.find((sub) => sub.customerId === userId)
+      if (match) return match
+    }
+    return null
   } catch (error) {
     console.error('Error fetching subscription:', error)
     return null
@@ -66,31 +70,33 @@ export async function getUserSubscription(userId: string) {
 }
 
 // Handle Polar webhook events
-export async function handlePolarWebhook(event: any) {
-  console.log('📨 Polar webhook received:', event.type)
-  
+export async function handlePolarWebhook(event: Record<string, unknown>) {
+  const eventType = event.type as string
+  const eventData = event.data as Record<string, unknown>
+  console.log('Polar webhook received:', eventType)
+
   try {
-    switch (event.type) {
+    switch (eventType) {
       case 'subscription.created':
-        await handleNewSubscription(event.data)
+        await handleNewSubscription(eventData)
         break
-        
+
       case 'subscription.updated':
-        await handleSubscriptionUpdate(event.data)
+        await handleSubscriptionUpdate(eventData)
         break
-        
+
       case 'subscription.cancelled':
-        await handleSubscriptionCancellation(event.data)
+        await handleSubscriptionCancellation(eventData)
         break
-        
+
       case 'subscription.revoked':
-        await handleSubscriptionRevocation(event.data)
+        await handleSubscriptionRevocation(eventData)
         break
-        
+
       default:
-        console.log('Unhandled event type:', event.type)
+        console.log('Unhandled event type:', eventType)
     }
-    
+
     return { received: true }
   } catch (error) {
     console.error('Webhook handling error:', error)
@@ -99,16 +105,16 @@ export async function handlePolarWebhook(event: any) {
 }
 
 // Handle new subscription
-async function handleNewSubscription(data: any) {
-  const { user_id, product_id, subscription_id } = data
-  
-  // Find the tier
+async function handleNewSubscription(data: Record<string, unknown>) {
+  const { user_id, product_id, subscription_id } = data as {
+    user_id: string; product_id: string; subscription_id: string
+  }
+
   const tier = Object.values(SUBSCRIPTION_TIERS).find(t => t.id === product_id)
   if (!tier) {
     throw new Error(`Unknown product ID: ${product_id}`)
   }
-  
-  // Update user in database
+
   await updateUserSubscription(user_id, {
     polarSubscriptionId: subscription_id,
     tier: tier.name.toLowerCase(),
@@ -117,91 +123,100 @@ async function handleNewSubscription(data: any) {
     resetDate: getNextResetDate(),
     status: 'active'
   })
-  
-  console.log(`✅ New ${tier.name} subscription for user ${user_id}`)
+
+  console.log(`New ${tier.name} subscription for user ${user_id}`)
 }
 
 // Handle subscription update
-async function handleSubscriptionUpdate(data: any) {
-  const { user_id, product_id, status } = data
-  
+async function handleSubscriptionUpdate(data: Record<string, unknown>) {
+  const { user_id, product_id, status } = data as {
+    user_id: string; product_id: string; status: string
+  }
+
   if (status === 'active') {
-    // Check if they upgraded/downgraded
-    const user = await getUserById(user_id)
-    if (user?.polarProductId !== product_id) {
-      // Tier changed - update credits
-      const tier = Object.values(SUBSCRIPTION_TIERS).find(t => t.id === product_id)
-      if (tier) {
-        await updateUserCredits(user_id, tier.credits, tier.credits)
-        console.log(`✅ User ${user_id} changed to ${tier.name} tier`)
-      }
+    const tier = Object.values(SUBSCRIPTION_TIERS).find(t => t.id === product_id)
+    if (tier) {
+      await updateUserCredits(user_id, tier.credits)
+      console.log(`User ${user_id} changed to ${tier.name} tier`)
     }
   }
 }
 
 // Handle subscription cancellation
-async function handleSubscriptionCancellation(data: any) {
-  const { user_id } = data
-  
+async function handleSubscriptionCancellation(data: Record<string, unknown>) {
+  const { user_id } = data as { user_id: string }
+
   await updateUserSubscription(user_id, {
     status: 'cancelled',
     credits: 0
   })
-  
-  console.log(`⚠️ Subscription cancelled for user ${user_id}`)
+
+  console.log(`Subscription cancelled for user ${user_id}`)
 }
 
 // Handle subscription revocation
-async function handleSubscriptionRevocation(data: any) {
-  const { user_id } = data
-  
+async function handleSubscriptionRevocation(data: Record<string, unknown>) {
+  const { user_id } = data as { user_id: string }
+
   await updateUserSubscription(user_id, {
     status: 'revoked',
     credits: 0
   })
-  
-  console.log(`🚫 Subscription revoked for user ${user_id}`)
+
+  console.log(`Subscription revoked for user ${user_id}`)
 }
 
 // Credit management
 export async function deductCredits(userId: string, credits: number) {
-  const user = await getUserById(userId)
-  
-  if (!user || user.credits < credits) {
+  const userRecord = await getUserById(userId)
+
+  if (!userRecord || userRecord.credits < credits) {
     throw new Error('Insufficient credits')
   }
-  
-  await updateUserCredits(userId, user.credits - credits)
-  
-  // Log usage
+
+  await updateUserCredits(userId, userRecord.credits - credits)
   await logCreditUsage(userId, credits, 'video_generation')
-  
+
   return {
     success: true,
-    remainingCredits: user.credits - credits
+    remainingCredits: userRecord.credits - credits
   }
 }
 
 // Check if user can afford generation
 export async function canAffordGeneration(userId: string, videoType: keyof typeof VIDEO_COSTS) {
-  const user = await getUserById(userId)
+  const userRecord = await getUserById(userId)
   const cost = VIDEO_COSTS[videoType]
-  
+
   return {
-    canAfford: user?.credits >= cost,
-    currentCredits: user?.credits || 0,
+    canAfford: (userRecord?.credits ?? 0) >= cost,
+    currentCredits: userRecord?.credits ?? 0,
     requiredCredits: cost
+  }
+}
+
+// Get user's credit balance
+export async function getUserCredits(userId: string): Promise<{
+  current: number;
+  total: number;
+  resetDate: Date;
+}> {
+  const userRecord = await getUserById(userId)
+
+  return {
+    current: userRecord?.creditsRemaining ?? 0,
+    total: userRecord?.creditsTotal ?? 0,
+    resetDate: getNextResetDate()
   }
 }
 
 // Get credit usage analytics
 export async function getCreditAnalytics(userId: string, days: number = 30) {
   const usage = await getCreditUsageHistory(userId, days)
-  
+
   return {
-    totalUsed: usage.reduce((sum, u) => sum + u.credits, 0),
+    totalUsed: usage.reduce((sum: number, u: { credits: number }) => sum + u.credits, 0),
     averageDaily: usage.length / days,
-    byType: groupBy(usage, 'type'),
     remaining: await getUserCredits(userId)
   }
 }
@@ -214,36 +229,37 @@ function getNextResetDate(): Date {
   return nextMonth
 }
 
-function groupBy(array: any[], key: string) {
-  return array.reduce((groups, item) => {
-    const group = groups[item[key]] || []
-    group.push(item)
-    groups[item[key]] = group
-    return groups
-  }, {})
+// Database functions (TODO: implement with Drizzle ORM)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function updateUserSubscription(_userId: string, _data: Record<string, unknown>) {
+  // TODO: implement with Drizzle
 }
 
-// Database functions (implement these based on your schema)
-async function updateUserSubscription(userId: string, data: any) {
-  // Update user in your database
-  // Implementation depends on your ORM (Prisma, Drizzle, etc.)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getUserById(_userId: string): Promise<{
+  credits: number;
+  creditsRemaining: number;
+  creditsTotal: number;
+  polarProductId?: string;
+} | null> {
+  // TODO: implement with Drizzle
+  return null
 }
 
-async function getUserById(userId: string) {
-  // Fetch user from database
-  // Should include: credits, subscription info, etc.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function updateUserCredits(_userId: string, _credits: number) {
+  // TODO: implement with Drizzle
 }
 
-async function updateUserCredits(userId: string, credits: number) {
-  // Update credit balance
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function logCreditUsage(_userId: string, _credits: number, _type: string) {
+  // TODO: implement with Drizzle
 }
 
-async function logCreditUsage(userId: string, credits: number, type: string) {
-  // Log credit usage for analytics
-}
-
-async function getCreditUsageHistory(userId: string, days: number) {
-  // Get usage history for analytics
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getCreditUsageHistory(_userId: string, _days: number): Promise<Array<{ credits: number; type: string }>> {
+  // TODO: implement with Drizzle
+  return []
 }
 
 export default {
