@@ -1,65 +1,82 @@
-/**
- * User Credits API
- *
- * GET /api/user/credits
- *
- * Returns the current user's credit information.
- */
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
+import { getUserCredits, deductCredits } from '@/lib/polar'
 
-import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { user } from "@/lib/schema";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-
-export async function GET() {
+// GET /api/user/credits - Get user's credit balance
+export async function GET(req: NextRequest) {
   try {
-    // Authenticate user
-    const headersList = await headers();
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
-
-    const userId = session.user.id;
-
-    // Fetch user credit info
-    const [userData] = await db
-      .select({
-        subscriptionTier: user.subscriptionTier,
-        subscriptionStatus: user.subscriptionStatus,
-        creditsRemaining: user.creditsRemaining,
-        creditsTotal: user.creditsTotal,
-      })
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    
+    const creditInfo = await getUserCredits(user.id)
+    
+    if (!creditInfo) {
+      return NextResponse.json({ error: 'No credit information found' }, { status: 404 })
     }
-
+    
+    // Check affordability for each video type
+    const canGenerate = {
+      veo: creditInfo.current >= 100,
+      klingStandard: creditInfo.current >= 150,
+      klingPro: creditInfo.current >= 200
+    }
+    
     return NextResponse.json({
-      subscriptionTier: userData.subscriptionTier,
-      subscriptionStatus: userData.subscriptionStatus,
-      creditsRemaining: userData.creditsRemaining,
-      creditsTotal: userData.creditsTotal,
-    });
+      current: creditInfo.current,
+      total: creditInfo.total,
+      resetDate: creditInfo.resetDate,
+      canGenerate
+    })
+    
   } catch (error) {
-    console.error("Failed to fetch user credits:", error);
+    console.error('Error fetching credits:', error)
     return NextResponse.json(
-      { error: "Failed to fetch credit information" },
+      { error: 'Failed to fetch credits' },
       { status: 500 }
-    );
+    )
+  }
+}
+
+// POST /api/user/credits/deduct - Deduct credits for generation
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+    
+    const { credits } = await req.json()
+    
+    if (!credits || credits <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid credit amount' },
+        { status: 400 }
+      )
+    }
+    
+    const result = await deductCredits(user.id, credits)
+    
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        remainingCredits: result.remainingCredits
+      })
+    } else {
+      return NextResponse.json(
+        { error: 'Failed to deduct credits' },
+        { status: 500 }
+      )
+    }
+    
+  } catch (error) {
+    console.error('Error deducting credits:', error)
+    return NextResponse.json(
+      { error: 'Failed to deduct credits' },
+      { status: 500 }
+    )
   }
 }

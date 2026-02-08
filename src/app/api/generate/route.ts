@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       style,
       aspectRatio,
       audioEnabled,
+      videoGenerator,
     } = body as {
       mode: GenerationMode;
       avatarId?: string;
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
       style?: "casual" | "professional" | "lifestyle" | "selfie";
       aspectRatio?: string;
       audioEnabled?: boolean;
+      videoGenerator?: "veo" | "kling-standard" | "kling-pro";
     };
 
     // Validate mode
@@ -137,6 +139,7 @@ export async function POST(request: Request) {
           title,
           aspectRatio: (aspectRatio as "16:9" | "9:16" | "1:1") || "9:16",
           audioEnabled: audioEnabled ?? true,
+          videoGenerator: videoGenerator || "veo",
           ...(referenceImageId ? { referenceImageId } : {}),
         });
 
@@ -278,6 +281,7 @@ export async function POST(request: Request) {
           title,
           aspectRatio: (aspectRatio as "16:9" | "9:16" | "1:1") || "9:16",
           audioEnabled: audioEnabled ?? true,
+          videoGenerator: videoGenerator || "veo",
           ...(referenceImageId ? { referenceImageId } : {}),
         });
 
