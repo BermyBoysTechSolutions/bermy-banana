@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { poll, pTimeout } from 'p-timeout';
+poll from 'p-timeout';
 
 /**
  * Kling AI Video Provider for Bermy Banana

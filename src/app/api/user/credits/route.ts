@@ -5,7 +5,7 @@ import { getUserCredits, deductCredits } from '@/lib/polar'
 // GET /api/user/credits - Get user's credit balance
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await auth.api.getSession({ headers: req.headers })
     
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 // POST /api/user/credits/deduct - Deduct credits for generation
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await auth.api.getSession({ headers: req.headers })
     
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
