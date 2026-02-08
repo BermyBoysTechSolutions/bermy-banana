@@ -1,0 +1,19 @@
+Execute the Kling AI implementation plan for Bermy Banana.
+
+Read KLING_IMPLEMENTATION_PLAN.md first, then:
+1. Spawn 3 sub-agents for parallel work:
+   - Backend Agent 1: Kling Provider + API Routes
+   - Backend Agent 2: Credit System Update (100/150/300 credits)
+   - Frontend Agent: Mode A + Mode C with 3-option toggle
+2. Create src/lib/providers/kling.ts (following veo.ts pattern)
+3. Create src/app/api/generate/kling/route.ts
+4. Update src/lib/credits.ts with KLING_STANDARD=150, KLING_PRO=300
+5. Add 3-option provider toggle to Mode A and Mode C
+6. Dynamic credit display (100/150/300)
+
+API credentials are in .env.local (KLING_ACCESS_KEY, KLING_SECRET_KEY)
+
+Work fast - complete TODAY.
+Report files created/modified.
+
+Begin now.

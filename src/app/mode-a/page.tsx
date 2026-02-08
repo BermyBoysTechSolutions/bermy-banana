@@ -110,6 +110,30 @@ const ASPECT_RATIO_OPTIONS: { value: AspectRatio; label: string; icon: React.Rea
   { value: "1:1", label: "1:1", icon: <div className="w-3.5 h-3.5 border-2 border-current rounded-sm" /> },
 ];
 
+const VIDEO_GENERATOR_OPTIONS = [
+  {
+    id: 'veo' as const,
+    name: 'Veo',
+    description: "Google's Veo - Reliable and fast",
+    cost: 100,
+    recommended: true,
+  },
+  {
+    id: 'kling-standard' as const,
+    name: 'Kling Standard',
+    description: 'Kling AI Standard - Good quality',
+    cost: 150,
+    recommended: false,
+  },
+  {
+    id: 'kling-pro' as const,
+    name: 'Kling Pro',
+    description: 'Kling AI Pro - Premium quality',
+    cost: 200,
+    recommended: false,
+  },
+];
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
@@ -130,6 +154,7 @@ export default function ModeAPage() {
   const [title, setTitle] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
+  const [videoGenerator, setVideoGenerator] = useState<'veo' | 'kling-standard' | 'kling-pro'>('veo');
   const [scenes, setScenes] = useState<SceneConfig[]>([
     { id: generateId(), type: "hook", script: "", action: "talking to camera energetically", setting: "", duration: 5 },
     { id: generateId(), type: "demo", script: "", action: "holding and showing the product", setting: "", duration: 6 },
@@ -354,6 +379,7 @@ export default function ModeAPage() {
         title: title.trim() || undefined,
         audioEnabled,
         aspectRatio,
+        videoGenerator,
         scenes: scenes.map((s) => ({
           type: s.type,
           script: s.script.trim(),
@@ -693,6 +719,55 @@ export default function ModeAPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1"
                 />
+              </div>
+              
+              {/* Video Generator Selection */}
+              <div className="space-y-3">
+                <Label>Video Generator</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {VIDEO_GENERATOR_OPTIONS.map((option) => (
+                    <div
+                      key={option.id}
+                      className={`relative p-3 border rounded-lg cursor-pointer transition-all ${
+                        videoGenerator === option.id
+                          ? 'border-blue-500 bg-blue-500/5 ring-2 ring-blue-500/20'
+                          : 'border-border hover:border-blue-500/50'
+                      }`}
+                      onClick={() => setVideoGenerator(option.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full border ${
+                            videoGenerator === option.id
+                              ? 'border-blue-500 bg-blue-500'
+                              : 'border-border'
+                          }`}>
+                            {videoGenerator === option.id && (
+                              <div className="w-full h-full rounded-full bg-blue-500 transform scale-50" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-sm">{option.name}</span>
+                              {option.recommended && (
+                                <span className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full">
+                                  Recommended
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {option.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-sm">{option.cost}</div>
+                          <div className="text-xs text-muted-foreground">credits</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div>
                 <Label className="mb-2 block">Aspect Ratio</Label>

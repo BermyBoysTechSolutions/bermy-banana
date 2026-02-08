@@ -9,6 +9,8 @@ import { eq } from "drizzle-orm";
 import type { GenerationMode } from "@/lib/providers/types";
 import { db } from "@/lib/db";
 import { user } from "@/lib/schema";
+import type { VideoGenerator } from "./video-generator";
+import { getGeneratorCredits } from "./video-generator";
 
 // Credit costs per operation
 export const CREDIT_COSTS = {
@@ -44,15 +46,21 @@ export interface UserCreditInfo {
  */
 export function calculateRequiredCredits(
   mode: GenerationMode,
-  sceneCount: number = 1
+  sceneCount: number = 1,
+  videoGenerator?: VideoGenerator
 ): number {
   if (mode === "MODE_B") {
     // Influencer photo (image generation)
     return CREDIT_COSTS.IMAGE;
   } else {
     // Video generation (MODE_A or MODE_C)
-    // Cost is per scene, not per job
-    return CREDIT_COSTS.VIDEO_SCENE * sceneCount;
+    if (videoGenerator) {
+      // Use generator-specific pricing
+      return getGeneratorCredits(videoGenerator) * sceneCount;
+    } else {
+      // Default to Veo pricing
+      return CREDIT_COSTS.VIDEO_SCENE * sceneCount;
+    }
   }
 }
 
@@ -62,7 +70,8 @@ export function calculateRequiredCredits(
 export async function checkCredits(
   userId: string,
   mode: GenerationMode,
-  sceneCount: number = 1
+  sceneCount: number = 1,
+  videoGenerator?: VideoGenerator
 ): Promise<CreditCheckResult> {
   // Fetch user's credit info
   const [userData] = await db
@@ -86,7 +95,7 @@ export async function checkCredits(
   }
 
   // Calculate required credits
-  const requiredCredits = calculateRequiredCredits(mode, sceneCount);
+  const requiredCredits = calculateRequiredCredits(mode, sceneCount, videoGenerator);
 
   // For free tier, fall back to legacy quota system
   if (userData.subscriptionTier === "free") {
@@ -141,7 +150,8 @@ export async function checkCredits(
 export async function deductCredits(
   userId: string,
   mode: GenerationMode,
-  sceneCount: number = 1
+  sceneCount: number = 1,
+  videoGenerator?: VideoGenerator
 ): Promise<{ success: boolean; error?: string | undefined; remaining?: number | undefined }> {
   // Fetch current credits
   const [userData] = await db
@@ -163,7 +173,7 @@ export async function deductCredits(
     return { success: true };
   }
 
-  const creditsToDeduct = calculateRequiredCredits(mode, sceneCount);
+  const creditsToDeduct = calculateRequiredCredits(mode, sceneCount, videoGenerator);
 
   if (userData.creditsRemaining < creditsToDeduct) {
     return { success: false, error: "Insufficient credits" };

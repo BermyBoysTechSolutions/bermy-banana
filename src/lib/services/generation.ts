@@ -35,6 +35,7 @@ import type {
   Scene,
   OutputAsset,
 } from "@/lib/schema";
+import { generateVideoWithProvider, type VideoGenerator } from "./video-generator";
 
 /**
  * Scene configuration for Mode A
@@ -60,6 +61,7 @@ export interface ModeAGenerationRequest {
   title?: string | undefined;
   aspectRatio?: "16:9" | "9:16" | "1:1" | undefined;
   audioEnabled?: boolean | undefined;
+  videoGenerator?: VideoGenerator | undefined;
 }
 
 /**
@@ -96,6 +98,7 @@ export interface ModeCGenerationRequest {
   title?: string | undefined;
   aspectRatio?: "16:9" | "9:16" | "1:1" | undefined;
   audioEnabled?: boolean | undefined;
+  videoGenerator?: VideoGenerator | undefined;
 }
 
 /**
@@ -114,7 +117,8 @@ export interface GenerationResult {
 export async function canUserGenerate(
   userId: string,
   mode: GenerationMode,
-  sceneCount: number = 1
+  sceneCount: number = 1,
+  videoGenerator?: VideoGenerator
 ): Promise<{ allowed: boolean; error?: string | undefined }> {
   // Check user approval status
   const [userData] = await db
@@ -478,7 +482,7 @@ export async function generateUGCVideo(
     }
 
     // 1. Check if user can generate (with scene count for credit calculation)
-    const canGenerate = await canUserGenerate(userId, "MODE_A", request.scenes.length);
+    const canGenerate = await canUserGenerate(userId, "MODE_A", request.scenes.length, request.videoGenerator);
     if (!canGenerate.allowed) {
       return { success: false, error: canGenerate.error ?? "Cannot generate" };
     }
@@ -638,13 +642,20 @@ export async function generateUGCVideo(
                 }
 
                 // Generate the video
-                const result = await generateVideo({
-                    prompt: videoPrompt,
-                    referenceImages,
-                    aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
-                    duration: sceneRecord.duration as 5 | 6 | 8,
-                    audioEnabled: request.audioEnabled ?? true,
-                });
+                const videoGenerator = request.videoGenerator || "veo";
+                const result = await generateVideoWithProvider(
+                    videoGenerator,
+                    {
+                        prompt: videoPrompt,
+                        referenceImages,
+                        aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
+                        duration: sceneRecord.duration as 5 | 6 | 8,
+                        audioEnabled: request.audioEnabled ?? true,
+                    },
+                    (status, attempt) => {
+                        console.log(`Scene ${sceneRecord.order}: ${status} (attempt ${attempt})`);
+                    }
+                );
 
         if (result.status !== "COMPLETED" || !result.videoData) {
           // Mark scene as failed
@@ -720,9 +731,9 @@ export async function generateUGCVideo(
       })
       .where(eq(generationJob.id, job.id));
 
-    // 7. Deduct credits based on successful scene generations (100 credits per scene)
+    // 7. Deduct credits based on successful scene generations
     if (outputs.length > 0) {
-      await deductCredits(userId, "MODE_A", outputs.length);
+      await deductCredits(userId, "MODE_A", outputs.length, request.videoGenerator);
     }
 
     // 8. Generate concat script if we have multiple outputs
@@ -775,7 +786,7 @@ export async function generateProductVideo(
     }
 
     // 1. Check if user can generate (with scene count for credit calculation)
-    const canGenerate = await canUserGenerate(userId, "MODE_C", request.scenes.length);
+    const canGenerate = await canUserGenerate(userId, "MODE_C", request.scenes.length, request.videoGenerator);
     if (!canGenerate.allowed) {
       return { success: false, error: canGenerate.error ?? "Cannot generate" };
     }
@@ -926,13 +937,20 @@ export async function generateProductVideo(
         }
 
         // Generate the video
-        const result = await generateVideo({
-          prompt: videoPrompt,
-          referenceImages,
-          aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
-          duration: sceneRecord.duration as 5 | 6 | 8,
-          audioEnabled: request.audioEnabled ?? true,
-        });
+        const videoGenerator = request.videoGenerator || "veo";
+        const result = await generateVideoWithProvider(
+          videoGenerator,
+          {
+            prompt: videoPrompt,
+            referenceImages,
+            aspectRatio: aspectRatio as "16:9" | "9:16" | "1:1",
+            duration: sceneRecord.duration as 5 | 6 | 8,
+            audioEnabled: request.audioEnabled ?? true,
+          },
+          (status, attempt) => {
+            console.log(`Scene ${sceneRecord.order}: ${status} (attempt ${attempt})`);
+          }
+        );
 
         if (result.status !== "COMPLETED" || !result.videoData) {
           // Mark scene as failed
@@ -1008,9 +1026,9 @@ export async function generateProductVideo(
       })
       .where(eq(generationJob.id, job.id));
 
-    // 8. Deduct credits based on successful scene generations (100 credits per scene)
+    // 8. Deduct credits based on successful scene generations
     if (outputs.length > 0) {
-      await deductCredits(userId, "MODE_C", outputs.length);
+      await deductCredits(userId, "MODE_C", outputs.length, request.videoGenerator);
     }
 
     // 9. Generate concat script if we have multiple outputs
