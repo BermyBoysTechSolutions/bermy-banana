@@ -50,6 +50,11 @@ export default function ModeC({ onGenerate, isGenerating = false }: ModeCProps) 
   // Get current generator
   const currentGenerator = generatorOptions.find(g => g.id === selectedGenerator) || generatorOptions[0];
 
+  // Safety check
+  if (!currentGenerator) {
+    return <div>No generators available</div>;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -58,13 +63,20 @@ export default function ModeC({ onGenerate, isGenerating = false }: ModeCProps) 
       return;
     }
 
-    const generateData = {
-      script: script.trim(),
-      videoGenerator: selectedGenerator,
-      referenceImage: referenceImage.trim() || undefined,
-    };
+  const generateData: {
+    script: string;
+    videoGenerator: 'veo' | 'kling-standard' | 'kling-pro';
+    referenceImage?: string;
+  } = {
+    script: script.trim(),
+    videoGenerator: selectedGenerator,
+  };
 
-    onGenerate(generateData);
+  if (referenceImage.trim()) {
+    generateData.referenceImage = referenceImage.trim();
+  }
+
+  onGenerate(generateData);
   };
 
   return (

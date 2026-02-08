@@ -32,7 +32,7 @@ export const PROVIDER_DESCRIPTIONS = {
 /**
  * Get credit cost for a provider and tier
  */
-export function getCreditCost(provider: string, tier?: string): number {
+export function getCreditCost(provider: string): number {
   if (provider === 'veo') return CREDIT_COSTS.VEO;
   if (provider === 'kling-standard') return CREDIT_COSTS.KLING_STANDARD;
   if (provider === 'kling-pro') return CREDIT_COSTS.KLING_PRO;
