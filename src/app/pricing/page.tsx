@@ -31,7 +31,7 @@ const pricingTiers: PricingTier[] = [
     credits: 500,
     videosPerMonth: 5,
     imagesPerMonth: 10,
-    productId: "polar_prod_trial", // Placeholder
+    productId: process.env.NEXT_PUBLIC_POLAR_TRIAL_PRODUCT_ID || "ea6fec5c-f397-4721-913b-b71a105c15c1",
     oneTime: true,
     features: [
       "500 credits (one-time)",
@@ -51,7 +51,7 @@ const pricingTiers: PricingTier[] = [
     credits: 800,
     videosPerMonth: 8,
     imagesPerMonth: 16,
-    productId: "polar_prod_starter", // Placeholder
+    productId: process.env.NEXT_PUBLIC_POLAR_STARTER_PRODUCT_ID || "519cbedf-8388-40e3-b6ff-ec91ee9fc648",
     features: [
       "800 credits per month",
       "~8 videos (100 credits/scene)",
@@ -70,7 +70,7 @@ const pricingTiers: PricingTier[] = [
     credits: 2400,
     videosPerMonth: 24,
     imagesPerMonth: 48,
-    productId: "polar_prod_pro", // Placeholder
+    productId: process.env.NEXT_PUBLIC_POLAR_PRO_PRODUCT_ID || "6e22424b-5e37-43e8-8113-8f92be71f617",
     popular: true,
     features: [
       "2,400 credits per month",
@@ -90,7 +90,7 @@ const pricingTiers: PricingTier[] = [
     credits: 6000,
     videosPerMonth: 67,
     imagesPerMonth: 120,
-    productId: "polar_prod_agency", // Placeholder
+    productId: process.env.NEXT_PUBLIC_POLAR_AGENCY_PRODUCT_ID || "265c8fc4-ad32-408d-9327-8ac82a8730f8",
     features: [
       "6,000 credits per month",
       "~67 videos (100 credits/scene)",
@@ -136,27 +136,9 @@ export default function PricingPage() {
     try {
       setLoadingTier(tier.id);
 
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: tier.productId,
-          tier: tier.id,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create checkout");
-      }
-
-      const { checkoutUrl } = await response.json();
-
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
-      } else {
-        throw new Error("No checkout URL received");
-      }
+      // Redirect to Polar checkout with product ID as query param
+      const checkoutUrl = `/api/checkout?products=${tier.productId}`;
+      window.location.href = checkoutUrl;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to start checkout"

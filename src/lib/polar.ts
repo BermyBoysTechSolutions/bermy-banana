@@ -105,7 +105,7 @@ export async function handlePolarWebhook(event: Record<string, unknown>) {
 }
 
 // Handle new subscription
-async function handleNewSubscription(data: Record<string, unknown>) {
+export async function handleNewSubscription(data: Record<string, unknown>) {
   const { user_id, product_id, subscription_id } = data as {
     user_id: string; product_id: string; subscription_id: string
   }
@@ -128,7 +128,7 @@ async function handleNewSubscription(data: Record<string, unknown>) {
 }
 
 // Handle subscription update
-async function handleSubscriptionUpdate(data: Record<string, unknown>) {
+export async function handleSubscriptionUpdate(data: Record<string, unknown>) {
   const { user_id, product_id, status } = data as {
     user_id: string; product_id: string; status: string
   }
@@ -143,7 +143,7 @@ async function handleSubscriptionUpdate(data: Record<string, unknown>) {
 }
 
 // Handle subscription cancellation
-async function handleSubscriptionCancellation(data: Record<string, unknown>) {
+export async function handleSubscriptionCancellation(data: Record<string, unknown>) {
   const { user_id } = data as { user_id: string }
 
   await updateUserSubscription(user_id, {
@@ -155,7 +155,7 @@ async function handleSubscriptionCancellation(data: Record<string, unknown>) {
 }
 
 // Handle subscription revocation
-async function handleSubscriptionRevocation(data: Record<string, unknown>) {
+export async function handleSubscriptionRevocation(data: Record<string, unknown>) {
   const { user_id } = data as { user_id: string }
 
   await updateUserSubscription(user_id, {
@@ -268,5 +268,9 @@ export default {
   handlePolarWebhook,
   deductCredits,
   canAffordGeneration,
-  getCreditAnalytics
+  getCreditAnalytics,
+  handleNewSubscription,
+  handleSubscriptionUpdate,
+  handleSubscriptionCancellation,
+  handleSubscriptionRevocation
 }
