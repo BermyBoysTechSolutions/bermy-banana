@@ -15,7 +15,7 @@ import { eq, and, desc, sql } from 'drizzle-orm';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -26,7 +26,7 @@ export async function GET(
       );
     }
 
-    const { userId } = params;
+    const { userId } = await params;
     const { searchParams } = new URL(request.url);
     const isAvatar = searchParams.get('isAvatar') === 'true';
     const limit = Math.min(Number(searchParams.get('limit')) || 50, 100);
