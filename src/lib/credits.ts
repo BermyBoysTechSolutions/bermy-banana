@@ -8,7 +8,7 @@ export const CREDIT_COSTS = {
   // Video generation
   VEO: 100,                    // Veo 3.1 standard
   KLING_STANDARD: 150,         // Kling AI standard tier
-  KLING_PRO: 300,              // Kling AI pro tier
+  KLING_PRO: 200,              // Kling AI pro tier
   
   // Other services can be added here
   // IMAGE_GENERATION: 10,

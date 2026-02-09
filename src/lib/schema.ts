@@ -51,6 +51,7 @@ export const user = pgTable(
     creditsTotal: integer("credits_total").default(0).notNull(),
     polarCustomerId: text("polar_customer_id"),
     polarSubscriptionId: text("polar_subscription_id"),
+    adminTier: text("admin_tier"), // Admin override tier — takes precedence over subscriptionTier when set
   },
   (table) => [index("user_email_idx").on(table.email)]
 );

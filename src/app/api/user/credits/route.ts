@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { user } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
+import type { SubscriptionTier } from '@/lib/schema'
+import { getFeatureMap } from '@/lib/features'
 
 // GET /api/user/credits - Get user's credit balance
 export async function GET(req: NextRequest) {
@@ -19,6 +21,7 @@ export async function GET(req: NextRequest) {
         subscriptionStatus: user.subscriptionStatus,
         creditsRemaining: user.creditsRemaining,
         creditsTotal: user.creditsTotal,
+        adminTier: user.adminTier,
       })
       .from(user)
       .where(eq(user.id, session.user.id))
@@ -28,11 +31,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    const effectiveTier = (userRecord.adminTier ?? userRecord.subscriptionTier) as SubscriptionTier
+    const features = getFeatureMap(effectiveTier)
+
     return NextResponse.json({
       subscriptionTier: userRecord.subscriptionTier,
       subscriptionStatus: userRecord.subscriptionStatus,
       creditsRemaining: userRecord.creditsRemaining,
       creditsTotal: userRecord.creditsTotal,
+      effectiveTier,
+      features,
       canGenerate: {
         veo: userRecord.creditsRemaining >= 100,
         klingStandard: userRecord.creditsRemaining >= 150,

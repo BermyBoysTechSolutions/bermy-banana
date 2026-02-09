@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ChevronDown,
   FileText,
+  FlaskConical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +45,8 @@ interface User {
   dailyImageQuota: number;
   videosGeneratedToday: number;
   imagesGeneratedToday: number;
+  subscriptionTier: string;
+  adminTier: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -216,6 +219,28 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error("Failed to update user:", err);
+    } finally {
+      setUpdatingUser(null);
+    }
+  };
+
+  // Update user admin tier override
+  const updateAdminTier = async (userId: string, adminTier: string | null) => {
+    setUpdatingUser(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminTier }),
+      });
+
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === userId ? { ...u, adminTier } : u))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update admin tier:", err);
     } finally {
       setUpdatingUser(null);
     }
@@ -424,6 +449,15 @@ export default function AdminPage() {
                             Admin
                           </Badge>
                         )}
+                        {u.adminTier && (
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
+                            <FlaskConical className="h-3 w-3 mr-1" />
+                            Test
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-xs">
+                          {u.adminTier ?? u.subscriptionTier ?? "free"}
+                        </Badge>
                       </div>
                       <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
                         <span>
@@ -489,6 +523,28 @@ export default function AdminPage() {
                           >
                             <Clock className="h-4 w-4 mr-2" />
                             Set Pending
+                          </DropdownMenuItem>
+                        )}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-1">
+                          Tier Override
+                        </div>
+                        {["trial", "starter", "pro", "agency"].map((tier) => (
+                          <DropdownMenuItem
+                            key={tier}
+                            onClick={() => updateAdminTier(u.id, tier)}
+                            className={u.adminTier === tier ? "font-bold" : ""}
+                          >
+                            <FlaskConical className="h-4 w-4 mr-2" />
+                            Set {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                          </DropdownMenuItem>
+                        ))}
+                        {u.adminTier && (
+                          <DropdownMenuItem
+                            onClick={() => updateAdminTier(u.id, null)}
+                            className="text-red-600"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Clear Override
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
