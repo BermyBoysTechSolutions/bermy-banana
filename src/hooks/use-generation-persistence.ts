@@ -1,7 +1,7 @@
 use client
 import { useState, useCallback, useEffect } from 'react';
 import { usePersistence } from './use-persistence';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
 interface UseGenerationPersistenceProps {
@@ -35,7 +35,8 @@ export function useGenerationPersistence({
   durationSeconds,
 }: UseGenerationPersistenceProps): UseGenerationPersistenceReturn {
   const { persistOutput, removeOutput, isOutputPersistent } = usePersistence();
-  const { userId } = useAuth();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [persistUntil, setPersistUntil] = useState<Date | undefined>();
