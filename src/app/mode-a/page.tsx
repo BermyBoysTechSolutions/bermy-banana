@@ -34,6 +34,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth-client";
+import { PersistenceActions } from "@/components/generate/persistence-actions";
+import { SaveAsAvatarButton } from "@/components/generate/save-as-avatar-button";
 
 interface Avatar {
   id: string;
@@ -1062,16 +1064,46 @@ export default function ModeAPage() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <div className="p-3 flex items-center justify-between bg-muted/50">
-                          <span className="text-sm font-medium">
-                            Scene {output.sceneIndex}
-                          </span>
-                          <Button asChild variant="outline" size="sm">
-                            <a href={output.url} download>
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </a>
-                          </Button>
+                        <div className="p-3 space-y-3 bg-muted/50">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Scene {output.sceneIndex}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Button asChild variant="outline" size="sm">
+                                <a href={output.url} download>
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Download
+                                </a>
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Persistence Actions */}
+                          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                            <div className="flex items-center gap-2">
+                              <PersistenceActions
+                                outputId={`scene-${output.sceneIndex}-${Date.now()}`}
+                                jobId={`mode-a-${Date.now()}`}
+                                jobMode="MODE_A"
+                                jobTitle={title || `UGC Video - Scene ${output.sceneIndex}`}
+                                outputType="VIDEO"
+                                outputUrl={output.url}
+                                size="sm"
+                                showText={false}
+                              />
+                            </div>
+                            
+                            {/* Save as Avatar for image scenes */}
+                            {output.url && (
+                              <SaveAsAvatarButton
+                                outputId={`scene-${output.sceneIndex}-${Date.now()}`}
+                                imageUrl={output.url}
+                                variant="ghost"
+                                size="sm"
+                              />
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

@@ -55,6 +55,9 @@ export function SiteHeader() {
                 <Button asChild variant="ghost" size="sm" className="hidden lg:flex bg-green-500/10 hover:bg-green-500/20 text-green-500">
                   <Link href="/mode-c">Mode C</Link>
                 </Button>
+                <Button asChild variant="ghost" size="sm" className="hidden lg:flex bg-purple-500/10 hover:bg-purple-500/20 text-purple-500">
+                  <Link href="/dashboard">Gallery</Link>
+                </Button>
                 {/* Desktop: Upgrade button */}
                 <Button asChild size="sm" className="hidden md:flex bg-yellow-500 hover:bg-yellow-600 text-black">
                   <Link href="/pricing">Upgrade</Link>

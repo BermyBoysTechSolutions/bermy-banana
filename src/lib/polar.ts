@@ -261,16 +261,3 @@ async function getCreditUsageHistory(_userId: string, _days: number): Promise<Ar
   // TODO: implement with Drizzle
   return []
 }
-
-export default {
-  initializePolar,
-  getUserSubscription,
-  handlePolarWebhook,
-  deductCredits,
-  canAffordGeneration,
-  getCreditAnalytics,
-  handleNewSubscription,
-  handleSubscriptionUpdate,
-  handleSubscriptionCancellation,
-  handleSubscriptionRevocation
-}

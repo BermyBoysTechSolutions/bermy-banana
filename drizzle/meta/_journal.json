@@ -36,6 +36,13 @@
       "when": 1770221109526,
       "tag": "0004_nice_gressill",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770652917337,
+      "tag": "0008_add_persistence_and_reference_images",
+      "breakpoints": true
     }
   ]
 }
