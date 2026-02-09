@@ -1,7 +1,7 @@
 use client
 import { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { PersistentOutput, GetPersistentOutputsResponse } from '@/lib/types/persistence';
-import { useAuth } from '@/lib/auth';
+import { useSession } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
 interface PersistenceContextType {
@@ -26,7 +26,7 @@ export function PersistenceProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     const loadFromLocalStorage = () => {
       try {
-        const stored = localStorage.getItem(`persistent-outputs-${session.user.id}`);
+        const stored = localStorage.getItem(`persistent-outputs-${session?.user?.id}`);
         if (stored) {
           const parsed = JSON.parse(stored);
           setPersistentOutputs(parsed);
@@ -36,22 +36,22 @@ export function PersistenceProvider({ children }: { children: React.ReactNode })
       }
     };
 
-    if (session.user.id) {
+    if (session?.user?.id) {
       loadFromLocalStorage();
       refreshOutputs(); // Sync with API
     }
-  }, [session.user.id]);
+  }, [session?.user?.id]);
 
   // Save to localStorage whenever outputs change
   useEffect(() => {
-    if (session.user.id && persistentOutputs.length > 0) {
+    if (session?.user?.id && persistentOutputs.length > 0) {
       try {
         localStorage.setItem(`persistent-outputs-${session.user.id}`, JSON.stringify(persistentOutputs));
       } catch (error) {
         console.error('Failed to save to localStorage:', error);
       }
     }
-  }, [persistentOutputs, session.user.id]);
+  }, [persistentOutputs, session?.user?.id]);
 
   const refreshOutputs = useCallback(async () => {
     if (!session.user.id) return;
