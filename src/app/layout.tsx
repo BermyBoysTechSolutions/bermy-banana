@@ -93,8 +93,6 @@ export default function RootLayout({
           <CookieBanner />
           <Toaster richColors position="top-right" />
         </ThemeProvider>
-        {/* Polar Checkout Integration */}
-        <script src="https://checkout.polar.sh/polar.js" async></script>
       </body>
     </html>
   );
