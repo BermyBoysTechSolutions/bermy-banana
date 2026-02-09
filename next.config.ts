@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Image optimization configuration
+  // Minimal config to avoid build issues
   images: {
     remotePatterns: [
       {
@@ -18,47 +18,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-
-  // Enable compression
-  compress: true,
   
   // External packages for server components
   serverExternalPackages: ['@polar-sh/sdk'],
-
-  // Security headers
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Cache-Control",
-            value: "no-store, max-age=0",
-          },
-        ],
-      },
-    ];
-  },
 };
 
 export default nextConfig;
