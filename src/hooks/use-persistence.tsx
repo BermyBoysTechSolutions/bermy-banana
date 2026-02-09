@@ -1,5 +1,5 @@
-use client
-import { createContext, useContext, useCallback, useEffect, useState } from 'react';
+'use client'
+import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { PersistentOutput, GetPersistentOutputsResponse } from '@/lib/types/persistence';
 import { useSession } from '@/lib/auth-client';
 import { toast } from 'sonner';
