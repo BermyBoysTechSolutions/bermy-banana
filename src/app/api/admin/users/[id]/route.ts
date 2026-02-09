@@ -98,11 +98,12 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     // Parse request body
     const body = await request.json();
-    const { status, role, dailyVideoQuota, dailyImageQuota } = body as {
+    const { status, role, dailyVideoQuota, dailyImageQuota, adminTier } = body as {
       status?: UserStatus;
       role?: UserRole;
       dailyVideoQuota?: number;
       dailyImageQuota?: number;
+      adminTier?: string | null;
     };
 
     // Validate status
@@ -129,6 +130,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (role) updates.role = role;
     if (dailyVideoQuota !== undefined) updates.dailyVideoQuota = dailyVideoQuota;
     if (dailyImageQuota !== undefined) updates.dailyImageQuota = dailyImageQuota;
+    if (adminTier !== undefined) updates.adminTier = adminTier;
+
+    // Validate adminTier
+    if (adminTier !== undefined && adminTier !== null && !["free", "trial", "starter", "pro", "agency"].includes(adminTier)) {
+      return NextResponse.json({ error: "Invalid admin tier" }, { status: 400 });
+    }
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
@@ -155,6 +162,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       auditAction = "ADMIN_DENY_USER";
     } else if (status === "SUSPENDED") {
       auditAction = "ADMIN_SUSPEND_USER";
+    } else if (adminTier !== undefined) {
+      auditAction = "ADMIN_SET_TIER_OVERRIDE";
     } else {
       auditAction = "ADMIN_UPDATE_USER";
     }

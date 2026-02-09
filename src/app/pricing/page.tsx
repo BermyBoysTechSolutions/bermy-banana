@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Sparkles, Zap, Building2, Briefcase, Loader2, Gift } from "lucide-react";
+import { Check, X, Sparkles, Zap, Building2, Briefcase, Loader2, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -254,6 +254,26 @@ export default function PricingPage() {
                       <div className="font-semibold">~{tier.imagesPerMonth}</div>
                       <div className="text-muted-foreground">images</div>
                     </div>
+                  </div>
+                )}
+                {!tier.contactSales && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">AI Video Models</p>
+                    <div className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                      <span>Veo video generation</span>
+                    </div>
+                    {tier.id === "pro" || tier.id === "agency" ? (
+                      <div className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                        <span>Kling Standard &amp; Pro</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <X className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                        <span>Kling Standard &amp; Pro (Pro plan required)</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <ul className="space-y-2">
