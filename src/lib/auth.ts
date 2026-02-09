@@ -23,6 +23,7 @@ export const auth = betterAuth({
     "https://www.bermybanana.com",
     "https://bermy-banana.vercel.app",
     "https://bermy-banana.vwdp.vercel.app",
+    ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
