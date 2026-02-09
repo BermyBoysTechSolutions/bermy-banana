@@ -27,7 +27,10 @@
       "Bash(winget install:*)",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth login --hostname github.com --web --git-protocol https)",
-      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create BermyBoysTechSolutions/bermy-banana --private --description \"Bermy Banana - AI-powered UGC video and content generation platform\" --source \"C:\\\\Users\\\\isimm\\\\OneDrive\\\\Documents\\\\Projects\\\\Bermy Banana\" --push)"
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create BermyBoysTechSolutions/bermy-banana --private --description \"Bermy Banana - AI-powered UGC video and content generation platform\" --source \"C:\\\\Users\\\\isimm\\\\OneDrive\\\\Documents\\\\Projects\\\\Bermy Banana\" --push)",
+      "Bash(npx eslint:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -35,5 +38,9 @@
     "shadcn",
     "playwright",
     "next-devtools"
-  ]
+  ],
+  "statusLine": {
+    "type": "command",
+    "command": "python3 -c 'import sys,json; d=json.load(sys.stdin); open(\"/home/sultan-yahya/.claude/teams/claude-b82f3d40/statusline/agent-62121e6d.jsonl\",\"a\").write(json.dumps(d)+\"\\n\"); print(d.get(\"model\",{}).get(\"display_name\",\"\"))'"
+  }
 }

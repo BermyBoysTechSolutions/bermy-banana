@@ -287,10 +287,16 @@ export const outputAsset = pgTable(
       fileSize?: number;
     }>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    // Persistence columns
+    persistUntil: timestamp("persist_until"),
+    isRemoved: boolean("is_removed").default(false).notNull(),
   },
   (table) => [
     index("output_asset_job_id_idx").on(table.jobId),
     index("output_asset_scene_id_idx").on(table.sceneId),
+    index("output_asset_created_at_idx").on(table.createdAt),
+    index("output_asset_persist_until_idx").on(table.persistUntil),
+    index("output_asset_is_removed_idx").on(table.isRemoved),
   ]
 );
 
@@ -342,6 +348,28 @@ export const referenceImage = pgTable(
   (table) => [index("reference_image_user_id_idx").on(table.userId)]
 );
 
+// Reference Images for Outputs - Links reference images to outputs for persistence
+export const referenceImages = pgTable(
+  "reference_images",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    outputId: uuid("output_id")
+      .notNull()
+      .references(() => outputAsset.id, { onDelete: "cascade" }),
+    imageUrl: text("image_url").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    isAvatar: boolean("is_avatar").default(false).notNull(),
+  },
+  (table) => [
+    index("reference_images_user_id_idx").on(table.userId),
+    index("reference_images_output_id_idx").on(table.outputId),
+    index("reference_images_is_avatar_idx").on(table.isAvatar),
+  ]
+);
+
 // Promo Code - For promotional credits
 export const promoCode = pgTable(
   "promo_code",
@@ -391,6 +419,7 @@ export const userRelations = relations(user, ({ many }) => ({
   jobs: many(generationJob),
   auditLogs: many(auditLog),
   referenceImages: many(referenceImage),
+  outputReferenceImages: many(referenceImages),
 }));
 
 export const avatarRelations = relations(avatar, ({ one, many }) => ({
@@ -434,7 +463,7 @@ export const sceneRelations = relations(scene, ({ one, many }) => ({
   outputs: many(outputAsset),
 }));
 
-export const outputAssetRelations = relations(outputAsset, ({ one }) => ({
+export const outputAssetRelations = relations(outputAsset, ({ one, many }) => ({
   job: one(generationJob, {
     fields: [outputAsset.jobId],
     references: [generationJob.id],
@@ -443,6 +472,7 @@ export const outputAssetRelations = relations(outputAsset, ({ one }) => ({
     fields: [outputAsset.sceneId],
     references: [scene.id],
   }),
+  referenceImages: many(referenceImages),
 }));
 
 export const auditLogRelations = relations(auditLog, ({ one }) => ({
@@ -456,6 +486,17 @@ export const referenceImageRelations = relations(referenceImage, ({ one }) => ({
   user: one(user, {
     fields: [referenceImage.userId],
     references: [user.id],
+  }),
+}));
+
+export const referenceImagesRelations = relations(referenceImages, ({ one }) => ({
+  user: one(user, {
+    fields: [referenceImages.userId],
+    references: [user.id],
+  }),
+  output: one(outputAsset, {
+    fields: [referenceImages.outputId],
+    references: [outputAsset.id],
   }),
 }));
 
@@ -504,6 +545,9 @@ export type NewAuditLog = typeof auditLog.$inferInsert;
 
 export type ReferenceImage = typeof referenceImage.$inferSelect;
 export type NewReferenceImage = typeof referenceImage.$inferInsert;
+
+export type ReferenceImages = typeof referenceImages.$inferSelect;
+export type NewReferenceImages = typeof referenceImages.$inferInsert;
 
 export type PromoCode = typeof promoCode.$inferSelect;
 export type NewPromoCode = typeof promoCode.$inferInsert;
