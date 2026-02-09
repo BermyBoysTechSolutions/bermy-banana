@@ -3,16 +3,16 @@ import { Button } from '@/components/ui/button';
 import { Save, Trash2, Loader2, Check } from 'lucide-react';
 import { useGenerationPersistence } from '@/hooks/use-generation-persistence';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Modal,
+  ModalAction,
+  ModalCancel,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal-simple';
 import {
   Tooltip,
   TooltipContent,
@@ -105,8 +105,8 @@ export function PersistenceActions({
             </TooltipContent>
           </Tooltip>
 
-          <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
-            <AlertDialogTrigger asChild>
+          <Modal open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+            <ModalTrigger asChild>
               <Button
                 variant="ghost"
                 size={size}
@@ -122,25 +122,25 @@ export function PersistenceActions({
                   </>
                 )}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remove from Gallery?</AlertDialogTitle>
-                <AlertDialogDescription>
+            </ModalTrigger>
+            <ModalContent>
+              <ModalHeader>
+                <ModalTitle>Remove from Gallery?</ModalTitle>
+                <ModalDescription>
                   This will remove the output from your persistent gallery. You won't be able to access it after removal.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
+                </ModalDescription>
+              </ModalHeader>
+              <ModalFooter>
+                <ModalCancel>Cancel</ModalCancel>
+                <ModalAction
                   onClick={handleRemove}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Remove
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </ModalAction>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </div>
       </TooltipProvider>
     );
