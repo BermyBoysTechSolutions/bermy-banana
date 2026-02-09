@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { usePersistence } from './use-persistence';
-import { useSession } from '@/lib/auth-client';
 import { toast } from 'sonner';
+import { useSession } from '@/lib/auth-client';
+import { usePersistence } from './use-persistence';
 
 interface UseGenerationPersistenceProps {
   outputId?: string;
