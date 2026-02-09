@@ -1,4 +1,3 @@
-use client
 import { useState, useCallback, useEffect } from 'react';
 import { usePersistence } from './use-persistence';
 import { useSession } from '@/lib/auth-client';

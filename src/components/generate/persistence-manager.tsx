@@ -1,3 +1,4 @@
+use client
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,7 +17,7 @@ import {
   ModalHeader,
   ModalTitle,
   ModalTrigger,
-} from '@/components/ui/modal-simple';
+} from '@/components/ui/modal-complete';
 import {
   DropdownMenu,
   DropdownMenuContent,

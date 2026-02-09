@@ -13,7 +13,7 @@ import {
   ModalHeader,
   ModalTitle,
   ModalTrigger,
-} from '@/components/ui/modal-simple';
+} from '@/components/ui/modal-complete';
 import {
   Tooltip,
   TooltipContent,

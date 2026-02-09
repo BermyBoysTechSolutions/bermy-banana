@@ -1,3 +1,4 @@
+use client
 import { Lock, Clock, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,7 @@ import {
   ModalHeader,
   ModalTitle,
   ModalTrigger,
-} from '@/components/ui/modal-simple';
+} from '@/components/ui/modal-complete';
 import { cn } from '@/lib/utils';
 
 interface PersistenceIndicatorProps {

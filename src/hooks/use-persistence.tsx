@@ -54,7 +54,7 @@ export function PersistenceProvider({ children }: { children: React.ReactNode })
   }, [persistentOutputs, session?.user?.id]);
 
   const refreshOutputs = useCallback(async () => {
-    if (!session.user.id) return;
+    if (!session?.user?.id) return;
     
     setLoading(true);
     setError(null);
@@ -72,7 +72,7 @@ export function PersistenceProvider({ children }: { children: React.ReactNode })
     } finally {
       setLoading(false);
     }
-  }, [session.user.id]);
+  }, [session?.user?.id]);
 
   const persistOutput = useCallback(async (outputId: string, persistUntil?: Date) => {
     try {
