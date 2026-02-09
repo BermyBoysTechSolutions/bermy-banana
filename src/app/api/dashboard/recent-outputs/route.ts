@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { outputAsset, generationJob, user } from '@/lib/schema';
-import { eq, and, desc, gte, lte, like, or, isNull } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, like, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Validation schemas for query parameters
