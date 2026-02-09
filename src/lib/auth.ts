@@ -23,7 +23,9 @@ export const auth = betterAuth({
     "https://www.bermybanana.com",
     "https://bermy-banana.vercel.app",
     "https://bermy-banana.vwdp.vercel.app",
+    "https://bermy-banana-git-feature-60f6a2-bermyboystechsolutions-projects.vercel.app",
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+    ...(process.env.VERCEL_BRANCH_URL ? [`https://${process.env.VERCEL_BRANCH_URL}`] : []),
   ],
   database: drizzleAdapter(db, {
     provider: "pg",
