@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar-simple';
 import { Check, Loader2, User } from 'lucide-react';
-import { useAuth } from '@clerk/nextjs';
+import { useSession } from '@/lib/auth-client';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -31,13 +31,13 @@ export function SaveAsAvatarButton({
   variant = 'outline',
   size = 'default',
 }: SaveAsAvatarButtonProps) {
-  const { userId } = useAuth();
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSaveAsAvatar = async () => {
-    if (!userId) {
+    if (!session?.user?.id) {
       toast.error('You must be logged in to save avatars');
       return;
     }

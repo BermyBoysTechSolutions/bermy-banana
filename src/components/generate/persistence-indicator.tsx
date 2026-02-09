@@ -7,16 +7,16 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Modal,
+  ModalAction,
+  ModalCancel,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal-simple';
 import { cn } from '@/lib/utils';
 
 interface PersistenceIndicatorProps {
@@ -102,8 +102,8 @@ export function PersistenceIndicator({
         </Tooltip>
 
         {onRemove && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <Modal>
+            <ModalTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
@@ -112,25 +112,25 @@ export function PersistenceIndicator({
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remove from Gallery?</AlertDialogTitle>
-                <AlertDialogDescription>
+            </ModalTrigger>
+            <ModalContent>
+              <ModalHeader>
+                <ModalTitle>Remove from Gallery?</ModalTitle>
+                <ModalDescription>
                   This will remove the output from your persistent gallery. You won't be able to access it after removal.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
+                </ModalDescription>
+              </ModalHeader>
+              <ModalFooter>
+                <ModalCancel>Cancel</ModalCancel>
+                <ModalAction
                   onClick={onRemove}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Remove
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </ModalAction>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         )}
       </div>
     </TooltipProvider>

@@ -7,16 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePersistence } from '@/hooks/use-persistence';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Modal,
+  ModalAction,
+  ModalCancel,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from '@/components/ui/modal-simple';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -232,32 +232,32 @@ export function PersistenceManager({
           {showActions && (
             <div className="flex items-center gap-2">
               {localIsPersistent ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                <Modal>
+                  <ModalTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Trash2 className="h-4 w-4 mr-1" />
                       Remove
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove from Gallery?</AlertDialogTitle>
-                      <AlertDialogDescription>
+                  </ModalTrigger>
+                  <ModalContent>
+                    <ModalHeader>
+                      <ModalTitle>Remove from Gallery?</ModalTitle>
+                      <ModalDescription>
                         This will remove the output from your persistent gallery. 
                         You won't be able to access it after removal.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
+                      </ModalDescription>
+                    </ModalHeader>
+                    <ModalFooter>
+                      <ModalCancel>Cancel</ModalCancel>
+                      <ModalAction
                         onClick={handleRemove}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Remove
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                      </ModalAction>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
               ) : (
                 <Button 
                   onClick={handleSave} 
