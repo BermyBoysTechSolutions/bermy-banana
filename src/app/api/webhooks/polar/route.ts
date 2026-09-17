@@ -5,7 +5,6 @@
  */
 
 import { Webhooks } from "@polar-sh/nextjs";
-import { NextResponse } from "next/server";
 
 // Import subscription handlers
 import { handleNewSubscription, handleSubscriptionUpdate, handleSubscriptionCancellation, handleSubscriptionRevocation } from "@/lib/polar";
