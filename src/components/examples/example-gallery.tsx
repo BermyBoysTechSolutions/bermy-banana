@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EXAMPLE_SLIDES, type ExampleSlide } from "@/lib/examples";
+import { cn } from "@/lib/utils";
 
 function GalleryCard({
   slide,
@@ -75,13 +76,19 @@ export function ExampleGallery() {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {EXAMPLE_SLIDES.map((slide) => (
-          <GalleryCard
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-6">
+        {EXAMPLE_SLIDES.map((slide, index) => (
+          <div
             key={slide.id}
-            slide={slide}
-            onOpen={setSelectedSlide}
-          />
+            className={cn(
+              "lg:col-span-2",
+              index === 3 && "lg:col-start-2",
+              index === 4 &&
+                "sm:col-span-2 sm:mx-auto sm:w-1/2 lg:col-span-2 lg:col-start-4 lg:mx-0 lg:w-full"
+            )}
+          >
+            <GalleryCard slide={slide} onOpen={setSelectedSlide} />
+          </div>
         ))}
       </div>
 
