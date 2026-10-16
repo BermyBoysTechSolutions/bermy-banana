@@ -20,7 +20,7 @@ Then edit `.env.local` with your Polar credentials:
 
 ```env
 # From your Polar dashboard
-POLAR_ACCESS_TOKEN=[SECRET_REMOVED]
+POLAR_ACCESS_TOKEN=
 POLAR_ORGANIZATION_ID=your_org_id
 POLAR_WEBHOOK_SECRET=your_webhook_secret
 

@@ -1,6 +1,7 @@
 import postgres from 'postgres';
 
-const connectionString = "postgresql://neondb_owner:[CONTACT_REMOVED]/neondb?sslmode=require";
+const connectionString = process.env.POSTGRES_URL;
+if (!connectionString) throw new Error("POSTGRES_URL is required");
 const sql = postgres(connectionString);
 
 async function approveUser(email: string) {
@@ -29,4 +30,6 @@ async function approveUser(email: string) {
   }
 }
 
-approveUser("[CONTACT_REMOVED]");
+const targetEmail = process.env.TARGET_USER_EMAIL;
+if (!targetEmail) throw new Error("TARGET_USER_EMAIL is required");
+approveUser(targetEmail);

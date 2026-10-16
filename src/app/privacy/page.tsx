@@ -273,7 +273,7 @@ export default function PrivacyPage() {
             </div>
 
             <p>
-              To exercise your rights, please contact us using the information in Section 11. We will respond to your request within the timeframe required by applicable law.
+              To exercise your rights, use the contact details configured for this deployment in Section 11. We will respond to your request within the timeframe required by applicable law.
             </p>
           </div>
         </section>
@@ -318,13 +318,11 @@ export default function PrivacyPage() {
           </div>
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              If you have any questions about this Privacy Policy or wish to exercise your privacy rights, please contact us:
+              If you have any questions about this Privacy Policy or wish to exercise your privacy rights, see the contact details configured for this deployment below:
             </p>
             <div className="p-4 bg-muted rounded-lg">
               <p className="font-medium text-foreground">Bermy Banana</p>
-              <p>Email: [CONTACT_REMOVED]</p>
-              <p>Address: [CONTACT_REMOVED]</p>
-              <p className="mt-2">Data Protection Officer: [CONTACT_REMOVED]</p>
+              {process.env.NEXT_PUBLIC_SUPPORT_EMAIL && <p>Email: {process.env.NEXT_PUBLIC_SUPPORT_EMAIL}</p>}
             </div>
             <p className="text-sm mt-4">
               For EU residents, you also have the right to lodge a complaint with your local data protection authority if you believe we have violated applicable data protection laws.

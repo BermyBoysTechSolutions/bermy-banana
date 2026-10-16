@@ -8,7 +8,7 @@ import { Resend } from 'resend';
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || [CONTACT_REMOVED]';
+const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL;
 
 // Initialize Resend client only if API key is available
 export const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
@@ -17,7 +17,7 @@ export const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
  * Check if Resend is properly configured
  */
 export function isResendConfigured(): boolean {
-  return !!resend && !!RESEND_API_KEY;
+  return !!resend && !!RESEND_API_KEY && !!RESEND_FROM_EMAIL;
 }
 
 export interface SendEmailOptions {
@@ -59,7 +59,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     // Build email options object with only defined fields
     // Using type assertion due to exactOptionalPropertyTypes in tsconfig
     const emailOptions = {
-      from: from || RESEND_FROM_EMAIL,
+      from: from || RESEND_FROM_EMAIL!,
       to,
       subject,
       html,
@@ -101,5 +101,5 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
  * Get the configured from email address
  */
 export function getFromEmail(): string {
-  return RESEND_FROM_EMAIL;
+  return RESEND_FROM_EMAIL ?? "";
 }
