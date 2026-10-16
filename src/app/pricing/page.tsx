@@ -336,15 +336,16 @@ export default function PricingPage() {
 
         {/* FAQ or Additional Info */}
         <div className="text-center text-muted-foreground text-sm">
-          <p>
-            Questions? Contact us at{" "}
-            <a
-              href="mailto:"
-              className="text-yellow-500 hover:underline"
-            >
-              
-            </a>
-          </p>
+          {process.env.NEXT_PUBLIC_SUPPORT_EMAIL ? (
+            <p>
+              Questions? Contact us at{" "}
+              <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`} className="text-yellow-500 hover:underline">
+                {process.env.NEXT_PUBLIC_SUPPORT_EMAIL}
+              </a>
+            </p>
+          ) : (
+            <p>Contact information is configured for this deployment.</p>
+          )}
           <p className="mt-2">
             All subscriptions can be cancelled at any time. Trial credits never expire.
             Monthly credits expire after 30 days of inactivity.
