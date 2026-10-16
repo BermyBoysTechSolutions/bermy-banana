@@ -272,7 +272,7 @@ export default function PricingPage() {
                     className="w-full"
                     variant="outline"
                   >
-                    <a href="mailto:[CONTACT_REMOVED]">Contact Sales</a>
+                    <span>Contact Sales</span>
                   </Button>
                 ) : (
                   <Button
@@ -319,10 +319,10 @@ export default function PricingPage() {
           <p>
             Questions? Contact us at{" "}
             <a
-              href="mailto:[CONTACT_REMOVED]"
+              href="mailto:"
               className="text-yellow-500 hover:underline"
             >
-              [CONTACT_REMOVED]
+              
             </a>
           </p>
           <p className="mt-2">

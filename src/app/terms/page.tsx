@@ -333,13 +333,12 @@ export default function TermsPage() {
           </div>
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              If you have any questions about these Terms, please contact us at:
+              If you have any questions about these Terms, contact details configured for this deployment appear below:
             </p>
             <div className="p-4 bg-muted rounded-lg mt-4">
-              <p className="font-medium text-foreground">Bermy Banana</p>
-              <p>Email: [CONTACT_REMOVED]</p>
-              <p>Address: [CONTACT_REMOVED]</p>
-            </div>
+                <p className="font-medium text-foreground">Bermy Banana</p>
+                {process.env.NEXT_PUBLIC_SUPPORT_EMAIL && <p>Email: {process.env.NEXT_PUBLIC_SUPPORT_EMAIL}</p>}
+              </div>
           </div>
         </section>
 

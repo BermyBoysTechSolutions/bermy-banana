@@ -29,7 +29,7 @@ const serverEnvSchema = z.object({
 
   // Email - Resend (optional - for transactional emails)
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().email().default("[CONTACT_REMOVED]"),
+  RESEND_FROM_EMAIL: z.string().email().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 
   // App
@@ -44,6 +44,7 @@ const serverEnvSchema = z.object({
  */
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_SUPPORT_EMAIL: z.string().email().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -74,6 +75,7 @@ export function getServerEnv(): ServerEnv {
 export function getClientEnv(): ClientEnv {
   const parsed = clientEnvSchema.safeParse({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
   });
 
   if (!parsed.success) {
@@ -120,8 +122,8 @@ export function checkEnv(): void {
     warnings.push("BLOB_READ_WRITE_TOKEN is not set. Using local storage for file uploads.");
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    warnings.push("RESEND_API_KEY is not set. Email notifications will be disabled.");
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
+    warnings.push("RESEND_API_KEY and RESEND_FROM_EMAIL are required for email notifications.");
   }
 
   // Log warnings in development
